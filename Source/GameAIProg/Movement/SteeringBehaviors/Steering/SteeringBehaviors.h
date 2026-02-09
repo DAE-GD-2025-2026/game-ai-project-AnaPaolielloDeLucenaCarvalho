@@ -46,47 +46,64 @@ public:
 	virtual SteeringOutput CalculateSteering(float DeltaT, ASteeringAgent& Agent) override;
 };
 
-//class Arrive : public ISteeringBehavior
-//{
-//public:
-//	Arrive() = default;
-//	virtual ~Arrive() = default;
-//
-//	//Arrive - similar to seek but with slowing down when approaching the target (2 radiuses SlowRadius & TargetRadius)
-//};
-//
-//class Face : public ISteeringBehavior
-//{
-//public:
-//	Face() = default;
-//	virtual ~Face() = default;
-//
-//	//Face - rotates the agent to face the target (dont use SetRotation())
-//};
-//
-//class Pursuit : public ISteeringBehavior
-//{
-//public:
-//	Pursuit() = default;
-//	virtual ~Pursuit() = default;
-//
-//	//Pursuit - similar to seek but predicts the future position of the target based on its velocity/time and seeks to that point
-//};
-//
-//class Evade : public ISteeringBehavior
-//{
-//public:
-//	Evade() = default;
-//	virtual ~Evade() = default;
-//
-//	//Evade - opposite of pursuit/similar to flee, predicts the future position of the target based on its velocity/time and flees that point
-//};
-//
-//class Wander : public ISteeringBehavior
-//{
-//public:
-//	Wander() = default;
-//	virtual ~Wander() = default;
-//
-//	//Wander - Randomized movement, random point on a circle is chosen as a new target, resulting Point becomes the Target
-//};
+class Arrive : public ISteeringBehavior
+{
+public:
+	Arrive() = default;
+	virtual ~Arrive() = default;
+
+	//Arrive - similar to seek but with slowing down when approaching the target (2 radiuses SlowRadius & TargetRadius)
+	virtual SteeringOutput CalculateSteering(float DeltaT, ASteeringAgent& Agent) override;
+
+protected:
+	float m_OriginalMaxSpeed = -1.f;
+};
+
+class Face : public ISteeringBehavior
+{
+public:
+	Face() = default;
+	virtual ~Face() = default;
+
+	//Face - rotates the agent to face the target (dont use SetRotation())
+	virtual SteeringOutput CalculateSteering(float DeltaT, ASteeringAgent& Agent) override;
+};
+
+class Pursuit : public Seek
+{
+public:
+	Pursuit() = default;
+	virtual ~Pursuit() = default;
+
+	//Pursuit - similar to seek but predicts the future position of the target based on its velocity/time and seeks to that point
+	virtual SteeringOutput CalculateSteering(float DeltaT, ASteeringAgent& Agent) override;
+};
+
+class Evade : public Flee
+{
+public:
+	Evade() = default;
+	virtual ~Evade() = default;
+
+	//Evade - opposite of pursuit/similar to flee, predicts the future position of the target based on its velocity/time and flees that point
+	virtual SteeringOutput CalculateSteering(float DeltaT, ASteeringAgent& Agent) override;
+};
+
+class Wander : public Seek
+{
+public:
+	Wander() = default;
+	virtual ~Wander() = default;
+
+	virtual SteeringOutput CalculateSteering(float DeltaT, ASteeringAgent& Agent) override;
+    
+	void SetWanderOffset(float offset) { m_OffsetDistance = offset; }
+	void SetWanderRadius(float radius) { m_Radius = radius; }
+	void SetWanderMaxAngleChange(float rad) { m_MaxAngleChange = rad; }
+
+protected:
+	float m_OffsetDistance = 600.f;
+	float m_Radius = 400.f;
+	float m_MaxAngleChange = 45.f * PI / 180.f;
+	float m_WanderAngle = 0.f;
+};
