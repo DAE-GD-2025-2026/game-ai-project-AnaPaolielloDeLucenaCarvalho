@@ -32,6 +32,61 @@ public:
 	Seek() = default;
 	virtual ~Seek() = default;
 
-	// steering
+	//Steering
 	virtual SteeringOutput CalculateSteering(float DeltaT, ASteeringAgent& Agent) override;
 };
+
+class Flee : public ISteeringBehavior
+{
+public:
+	Flee() = default;
+	virtual ~Flee() = default;
+
+	//Fleeing - the opposite of seeking (reuse seek behavior and invert)
+	virtual SteeringOutput CalculateSteering(float DeltaT, ASteeringAgent& Agent) override;
+};
+
+//class Arrive : public ISteeringBehavior
+//{
+//public:
+//	Arrive() = default;
+//	virtual ~Arrive() = default;
+//
+//	//Arrive - similar to seek but with slowing down when approaching the target (2 radiuses SlowRadius & TargetRadius)
+//};
+//
+//class Face : public ISteeringBehavior
+//{
+//public:
+//	Face() = default;
+//	virtual ~Face() = default;
+//
+//	//Face - rotates the agent to face the target (dont use SetRotation())
+//};
+//
+//class Pursuit : public ISteeringBehavior
+//{
+//public:
+//	Pursuit() = default;
+//	virtual ~Pursuit() = default;
+//
+//	//Pursuit - similar to seek but predicts the future position of the target based on its velocity/time and seeks to that point
+//};
+//
+//class Evade : public ISteeringBehavior
+//{
+//public:
+//	Evade() = default;
+//	virtual ~Evade() = default;
+//
+//	//Evade - opposite of pursuit/similar to flee, predicts the future position of the target based on its velocity/time and flees that point
+//};
+//
+//class Wander : public ISteeringBehavior
+//{
+//public:
+//	Wander() = default;
+//	virtual ~Wander() = default;
+//
+//	//Wander - Randomized movement, random point on a circle is chosen as a new target, resulting Point becomes the Target
+//};
