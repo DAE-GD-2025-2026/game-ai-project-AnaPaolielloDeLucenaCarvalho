@@ -69,7 +69,7 @@ public:
 	virtual SteeringOutput CalculateSteering(float DeltaT, ASteeringAgent& Agent) override;
 };
 
-class Pursuit : public Seek
+class Pursuit : public ISteeringBehavior
 {
 public:
 	Pursuit() = default;
@@ -77,9 +77,13 @@ public:
 
 	//Pursuit - similar to seek but predicts the future position of the target based on its velocity/time and seeks to that point
 	virtual SteeringOutput CalculateSteering(float DeltaT, ASteeringAgent& Agent) override;
+
+protected:
+	FVector2D m_LastTargetPosition = FVector2D::ZeroVector;
+	FVector2D m_CurrentVelocity = FVector2D::ZeroVector;
 };
 
-class Evade : public Flee
+class Evade : public ISteeringBehavior
 {
 public:
 	Evade() = default;
@@ -87,6 +91,10 @@ public:
 
 	//Evade - opposite of pursuit/similar to flee, predicts the future position of the target based on its velocity/time and flees that point
 	virtual SteeringOutput CalculateSteering(float DeltaT, ASteeringAgent& Agent) override;
+
+protected:
+	FVector2D m_LastTargetPosition = FVector2D::ZeroVector;
+	FVector2D m_CurrentVelocity = FVector2D::ZeroVector;
 };
 
 class Wander : public Seek
@@ -102,8 +110,8 @@ public:
 	void SetWanderMaxAngleChange(float rad) { m_MaxAngleChange = rad; }
 
 protected:
-	float m_OffsetDistance = 600.f;
-	float m_Radius = 400.f;
+	float m_OffsetDistance = 100.f;
+	float m_Radius = 80.f;
 	float m_MaxAngleChange = 45.f * PI / 180.f;
 	float m_WanderAngle = 0.f;
 };
