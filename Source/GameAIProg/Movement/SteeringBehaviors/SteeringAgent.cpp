@@ -32,13 +32,11 @@ void ASteeringAgent::Tick(float DeltaTime)
 
         AddMovementInput(FVector{ output.LinearVelocity, 0.f });
 
-        if (output.AngularVelocity != 0.f)
-        {
-            float CurrentRotation = GetActorRotation().Yaw;
-            float NewYaw = CurrentRotation + (output.AngularVelocity * DeltaTime * GetMaxAngularSpeed());
-
-            SetActorRotation(FRotator(0.f, NewYaw, 0.f));
-        }
+		if (!FMath::IsNearlyZero(output.AngularVelocity))
+		{
+			float NewYaw = GetActorRotation().Yaw + (output.AngularVelocity * DeltaTime);
+			SetActorRotation(FRotator(0.f, NewYaw, 0.f));
+		}
     }
 }
 

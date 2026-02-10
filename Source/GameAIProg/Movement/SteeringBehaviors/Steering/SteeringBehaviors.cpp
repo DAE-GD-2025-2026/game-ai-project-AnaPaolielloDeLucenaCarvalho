@@ -103,31 +103,23 @@ SteeringOutput Arrive::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
 SteeringOutput Face::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
 {
     SteeringOutput Steering{};
-    FVector2D const direction = Target.Position - Agent.GetPosition();
+    FVector2D ToTarget = Target.Position - Agent.GetPosition();
 
-    if (direction.SizeSquared() < 100.f) return Steering;
+    float DesiredOrientation = FMath::RadiansToDegrees(FMath::Atan2(ToTarget.Y, ToTarget.X));
 
-    float const targetRotation = FMath::Atan2(direction.Y, direction.X);
-    float const currentRotation = Agent.GetRotation();
+    float CurrentOrientation = Agent.GetRotation();
 
-    float angleDiff = targetRotation - currentRotation;
+    float RotationDelta = DesiredOrientation - CurrentOrientation;
+    RotationDelta = FMath::UnwindDegrees(RotationDelta);
 
-    while (angleDiff > PI) angleDiff -= 2 * PI;
-    while (angleDiff < -PI) angleDiff += 2 * PI;
+    float MaxAngularSpeed = Agent.GetMaxAngularSpeed();
+    Steering.AngularVelocity = FMath::Clamp(RotationDelta, -MaxAngularSpeed, MaxAngularSpeed);
 
-    float degreesDiff = FMath::RadiansToDegrees(angleDiff);
-    const float angleThreshold = 1.5f;
+    // Debug Rendering
+    FVector2D CurrentVel2D = Target.Position;
 
-    if (FMath::Abs(degreesDiff) < angleThreshold)
-    {
-        Steering.AngularVelocity = 0.f;
-    }
-    else
-    {
-        Steering.AngularVelocity = (degreesDiff > 0) ? 1.f : -1.f;
-    }
+    DrawDebugCircle(Agent.GetWorld(), FVector(CurrentVel2D.X, CurrentVel2D.Y, 0), 10, 50, FColor::Red, false, -1.f, 0, 5.f, FVector(1, 0, 0), FVector(0, 1, 0), false);
 
-    DrawBaseSteeringDebug(Agent, FVector2D::ZeroVector);
     return Steering;
 }
 
