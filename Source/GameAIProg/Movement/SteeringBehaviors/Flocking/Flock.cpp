@@ -3,34 +3,34 @@
 #include "Shared/ImGuiHelpers.h"
 
 
-Flock::Flock(
-	UWorld* pWorld,
-	TSubclassOf<ASteeringAgent> AgentClass,
-	int FlockSize,
-	float WorldSize,
-	ASteeringAgent* const pAgentToEvade,
-	bool bTrimWorld)
+Flock::Flock(UWorld* pWorld, TSubclassOf<ASteeringAgent> AgentClass, int FlockSize, float WorldSize, ASteeringAgent* const pAgentToEvade, bool bTrimWorld)
 	: pWorld{pWorld}
 	, FlockSize{ FlockSize }
-	, pAgentToEvade{pAgentToEvade}
 	, m_WorldSize{WorldSize}
 	, m_bTrimWorld{bTrimWorld}
+	, pAgentToEvade{pAgentToEvade}
 {
 	Agents.SetNum(FlockSize);
+	Neighbors.SetNum(FlockSize); 
 
-	// Initialize the flock and the memory pool
-	Neighbors.SetNum(FlockSize); // Memory pool for the neighbors (whole flock minus one)
-
-	pBlendedSteering = std::make_unique<BlendedSteering>(std::vector<BlendedSteering::WeightedBehavior>{}); // For UI
-	pPrioritySteering = std::make_unique<PrioritySteering>(std::vector<ISteeringBehavior*>{}); // For UI
-
+	pBlendedSteering = std::make_unique<BlendedSteering>(std::vector<BlendedSteering::WeightedBehavior>{
+		{ nullptr, 0.2f }, // Cohesion dummy
+		{ nullptr, 0.5f }, // Separation dummy
+		{ nullptr, 0.3f }  // Alignment dummy
+	}); 
+	
+	pPrioritySteering = std::make_unique<PrioritySteering>(std::vector<ISteeringBehavior*>{}); 
 	m_pEvade = std::make_unique<Evade>();
-	m_pEvade->SetTarget(FSteeringParams{ FVector2D(pAgentToEvade->GetActorLocation()) });
+
+	if (pAgentToEvade) 
+	{
+		m_pEvade->SetTarget(FSteeringParams{ FVector2D(pAgentToEvade->GetActorLocation()) });
+	}
 
 	pPrioritySteering->AddBehaviour(m_pEvade.get());
 	pPrioritySteering->AddBehaviour(pBlendedSteering.get());
 
-	for (int i = 0; i < FlockSize; ++i) // Spawn agents at a random location and make them flocking
+	for (int i = 0; i < FlockSize; ++i) 
 	{
 		FVector2D SpawnPos = FVector2D(FMath::RandRange(-WorldSize, WorldSize), FMath::RandRange(-WorldSize, WorldSize));
 		ASteeringAgent* pAgent = pWorld->SpawnActor<ASteeringAgent>(AgentClass, FVector(SpawnPos.X, SpawnPos.Y, 0.f), FRotator::ZeroRotator);
@@ -153,22 +153,24 @@ void Flock::ImGuiRender(ImVec2 const& WindowPos, ImVec2 const& WindowSize)
 		ImGui::Text("Flocking");
 		ImGui::Spacing();
 
-		// TODO: Implement ImGUI checkboxes for debug rendering here
+		// Implement ImGUI checkboxes for debug rendering here
 		ImGui::Checkbox("Steering", &DebugRenderSteering);
 		ImGui::Checkbox("Neighborhood", &DebugRenderNeighborhood);
 
 		ImGui::Text("Behavior Weights");
 		ImGui::Spacing();
 
-		// TODO: Implement ImGUI sliders for steering behavior weights here
+		// Implement ImGUI sliders for steering behavior weights here
 		ImGui::SliderFloat("Cohesion", &pBlendedSteering->GetWeightedBehaviorsRef()[0].Weight, 0.f, 1.f);
 		ImGui::SliderFloat("Separation", &pBlendedSteering->GetWeightedBehaviorsRef()[1].Weight, 0.f, 1.f);
 		ImGui::SliderFloat("Alignment", &pBlendedSteering->GetWeightedBehaviorsRef()[2].Weight, 0.f, 1.f);
 
-		for (ASteeringAgent* pAgent : Agents) // Loop through every agent and set behavior weights to values from UI sliders
+		for (ASteeringAgent* pAgent : Agents) 
 		{
+			if (!pAgent) continue; 
+
 			auto* pBehavior = static_cast<FlockingSteeringBehaviors*>(pAgent->GetSteeringBehavior());
-			if (pBehavior)
+			if (pBehavior && pBehavior->GetBlendedSteering())
 			{
 				auto& agentWeights = pBehavior->GetBlendedSteering()->GetWeightedBehaviorsRef();
 				agentWeights[0].Weight = pBlendedSteering->GetWeightedBehaviorsRef()[0].Weight; // Cohesion
@@ -210,7 +212,7 @@ void Flock::RegisterNeighbors(ASteeringAgent* const pAgent)
 
 	for (ASteeringAgent* pOtherAgent : Agents) // Loop through every agent in the flock, check if they are a neighbor
 	{
-		if (pOtherAgent != pAgent)
+		if (pOtherAgent != nullptr && pOtherAgent != pAgent)
 		{
 			float Distance = FVector2D::Distance(FVector2D(pAgent->GetActorLocation()), FVector2D(pOtherAgent->GetActorLocation()));
 			if (Distance < NeighborhoodRadius)
