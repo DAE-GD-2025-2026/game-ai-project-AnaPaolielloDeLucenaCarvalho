@@ -52,6 +52,8 @@ private:
 	
 	int FlockSize{0};
 	TArray<ASteeringAgent*> Agents{};
+	float m_WorldSize{100.f};
+	bool m_bTrimWorld{false};
 #ifdef GAMEAI_USE_SPACE_PARTITIONING
 	//std::unique_ptr<CellSpace> pPartitionedSpace{};
 	//int NrOfCellsX{ 10 };

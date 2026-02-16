@@ -42,7 +42,7 @@ void ALevel_CombinedSteering::Tick(float DeltaTime)
 		ImGui::Indent();
 		ImGui::Text("LMB: place target");
 		ImGui::Text("RMB: move cam.");
-		ImGui::Text("Scrollwheel: zoom cam.");
+		ImGui::Text("Scroll wheel: zoom cam.");
 		ImGui::Unindent();
 	
 		ImGui::Spacing();

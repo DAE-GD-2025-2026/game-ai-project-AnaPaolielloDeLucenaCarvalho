@@ -28,7 +28,7 @@ protected:
 	virtual void BeginDestroy() override;
 
 private:
-	//Datamembers
+	//Data members
 	bool UseMouseTarget = false;
 	bool CanDebugRender = false;
 

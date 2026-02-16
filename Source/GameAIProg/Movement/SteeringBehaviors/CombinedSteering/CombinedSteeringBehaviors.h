@@ -45,7 +45,7 @@ public:
 	{}
 
 	void AddBehaviour(ISteeringBehavior* const pBehavior) { m_PriorityBehaviors.push_back(pBehavior); }
-	SteeringOutput CalculateSteering(float DeltaT, ASteeringAgent& Agent) override;
+	virtual SteeringOutput CalculateSteering(float DeltaT, ASteeringAgent& Agent) override;
 
 private:
 	std::vector<ISteeringBehavior*> m_PriorityBehaviors = {};

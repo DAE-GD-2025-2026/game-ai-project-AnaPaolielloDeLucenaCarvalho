@@ -12,7 +12,7 @@ public:
 	Cohesion(Flock* const pFlock) :pFlock(pFlock) {};
 
 	//Cohesion Behavior
-	SteeringOutput CalculateSteering(float deltaT, ASteeringAgent& pAgent) override;
+	virtual SteeringOutput CalculateSteering(float deltaT, ASteeringAgent& pAgent) override;
 
 private:
 	Flock* pFlock = nullptr;
@@ -26,7 +26,7 @@ public:
 	Separation(Flock* const pFlock) :pFlock(pFlock) {};
 
 	//Cohesion Behavior
-	SteeringOutput CalculateSteering(float deltaT, ASteeringAgent& pAgent) override;
+	virtual SteeringOutput CalculateSteering(float deltaT, ASteeringAgent& pAgent) override;
 
 private:
 	Flock* pFlock = nullptr;
@@ -40,7 +40,7 @@ public:
 	VelocityMatch(Flock* const pFlock) :pFlock(pFlock) {};
 
 	//Cohesion Behavior
-	SteeringOutput CalculateSteering(float deltaT, ASteeringAgent& pAgent) override;
+	virtual SteeringOutput CalculateSteering(float deltaT, ASteeringAgent& pAgent) override;
 
 private:
 	Flock* pFlock = nullptr;
@@ -53,6 +53,7 @@ public:
 	FlockingSteeringBehaviors(ASteeringAgent* pAgent, Flock* pFlock);
 	virtual SteeringOutput CalculateSteering(float deltaT, ASteeringAgent& pAgent) override;
 
+	BlendedSteering* GetBlendedSteering() const { return m_pBlendedSteering; }
 private:
 	// The blender that does the math
 	BlendedSteering* m_pBlendedSteering = nullptr;
