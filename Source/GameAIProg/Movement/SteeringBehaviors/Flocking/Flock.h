@@ -29,6 +29,8 @@ public:
 	void Tick(float DeltaTime);
 	void RenderDebug();
 	void ImGuiRender(ImVec2 const& WindowPos, ImVec2 const& WindowSize);
+	
+	float GetNeighborhoodRadius() const { return NeighborhoodRadius; }
 
 #ifdef GAMEAI_USE_SPACE_PARTITIONING
 	//const TArray<ASteeringAgent*>& GetNeighbors() const { return pPartitionedSpace->GetNeighbors(); }
@@ -61,6 +63,7 @@ private:
 	float NeighborhoodRadius{200.f};
 	int NrOfNeighbors{0};
 
+	std::unique_ptr<Evade> m_pEvade{ nullptr }; 
 	ASteeringAgent* pAgentToEvade{nullptr};
 	
 	//Steering Behaviors
@@ -69,7 +72,6 @@ private:
 	//std::unique_ptr<VelocityMatch> pVelMatchBehavior{};
 	//std::unique_ptr<Seek> pSeekBehavior{};
 	//std::unique_ptr<Wander> pWanderBehavior{};
-	//std::unique_ptr<Evade> pEvadeBehavior{};
 	
 	std::unique_ptr<BlendedSteering> pBlendedSteering{};
 	std::unique_ptr<PrioritySteering> pPrioritySteering{};

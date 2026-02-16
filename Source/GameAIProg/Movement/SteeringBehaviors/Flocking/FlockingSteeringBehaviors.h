@@ -2,23 +2,7 @@
 #include "Movement/SteeringBehaviors/Steering/SteeringBehaviors.h"
 
 class Flock;
-
-// FLOCKING STEERING BEHAVIOR
-class FlockingSteeringBehaviors : public SteeringBehavior
-{
-public:
-	FlockingSteeringBehaviors(ASteeringAgent* pAgent, Flock* pFlock);
-	virtual SteeringOutput CalculateSteering(float deltaT, ASteeringAgent& pAgent) override;
-
-private:
-	// The blender that does the math
-	BlendedSteering* m_pBlendedSteering = nullptr;
-
-	// Individual behavior pointers to pass to the blender
-	Cohesion* m_pCohesion = nullptr;
-	Separation* m_pSeparation = nullptr;
-	VelocityMatch* m_pAlignment = nullptr;
-};
+class BlendedSteering;
 
 //COHESION - FLOCKING
 //*******************
@@ -60,4 +44,21 @@ public:
 
 private:
 	Flock* pFlock = nullptr;
+};
+
+// FLOCKING STEERING BEHAVIOR
+class FlockingSteeringBehaviors : public ISteeringBehavior
+{
+public:
+	FlockingSteeringBehaviors(ASteeringAgent* pAgent, Flock* pFlock);
+	virtual SteeringOutput CalculateSteering(float deltaT, ASteeringAgent& pAgent) override;
+
+private:
+	// The blender that does the math
+	BlendedSteering* m_pBlendedSteering = nullptr;
+
+	// Individual behavior pointers to pass to the blender
+	Cohesion* m_pCohesion = nullptr;
+	Separation* m_pSeparation = nullptr;
+	VelocityMatch* m_pAlignment = nullptr;
 };

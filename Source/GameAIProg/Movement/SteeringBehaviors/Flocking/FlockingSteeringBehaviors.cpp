@@ -5,7 +5,7 @@
 
 FlockingSteeringBehaviors::FlockingSteeringBehaviors(ASteeringAgent* pAgent, Flock* pFlock)
 {
-    m_pBlendedSteering = new BlendedSteering();
+    m_pBlendedSteering = new BlendedSteering(std::vector<BlendedSteering::WeightedBehavior>{});
 
     m_pCohesion = new Cohesion(pFlock);
     m_pSeparation = new Separation(pFlock);
@@ -28,30 +28,30 @@ SteeringOutput FlockingSteeringBehaviors::CalculateSteering(float deltaT, ASteer
 SteeringOutput Cohesion::CalculateSteering(float deltaT, ASteeringAgent& pAgent)
 {
 	// Move towards the average position of your neighbors
-
-	FVector2D avgPos = pFlock->GetAverageNeighborPos();
-	m_Target = FSteeringParams{ avgPos };
-	return Seek::CalculateSteering(deltaT, pAgent);
+    FVector2D avgPos = pFlock->GetAverageNeighborPos();
+    this->SetTarget(FSteeringParams{ avgPos }); 
+    return Seek::CalculateSteering(deltaT, pAgent);
 }
 
 //*********************
 //SEPARATION (FLOCKING)
 SteeringOutput Separation::CalculateSteering(float deltaT, ASteeringAgent& pAgent)
 {
-	// Move away from your neighbors
-
     SteeringOutput steering = {};
     const auto& neighbors = pFlock->GetNeighbors();
     int nrNeighbors = pFlock->GetNrOfNeighbors();
 
     for (int i = 0; i < nrNeighbors; ++i)
     {
-        FVector2D fromNeighbor = pAgent.GetLocation() - neighbors[i]->GetLocation();
+        FVector2D agentPos = FVector2D(pAgent.GetActorLocation());
+        FVector2D neighborPos = FVector2D(neighbors[i]->GetActorLocation());
+        
+        FVector2D fromNeighbor = agentPos - neighborPos;
         float distance = fromNeighbor.Size();
 
-		if (distance > 0) // Avoid division by zero
+        if (distance > 0 && distance < pFlock->GetNeighborhoodRadius()) 
         {
-            steering.LinearVelocity += fromNeighbor.GetSafeNormal() / distance; // Push harder if closer (1/distance)
+            steering.LinearVelocity += fromNeighbor.GetSafeNormal() / distance; 
         }
     }
 
