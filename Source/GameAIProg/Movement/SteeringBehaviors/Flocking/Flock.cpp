@@ -127,7 +127,6 @@ void Flock::ImGuiRender(ImVec2 const& WindowPos, ImVec2 const& WindowSize)
 		ImGui::SliderFloat("Cohesion", &pBlendedSteering->GetWeightedBehaviors()[0].Weight, 0.f, 1.f);
 		ImGui::SliderFloat("Separation", &pBlendedSteering->GetWeightedBehaviors()[1].Weight, 0.f, 1.f);
 		ImGui::SliderFloat("Alignment", &pBlendedSteering->GetWeightedBehaviors()[2].Weight, 0.f, 1.f);
-		ImGui::SliderFloat("Neighborhood Radius", &NeighborhoodRadius, 0.f, 500.f);
 
 		//End
 		ImGui::End();

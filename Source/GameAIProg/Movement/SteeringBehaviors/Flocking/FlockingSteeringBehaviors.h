@@ -1,6 +1,24 @@
 #pragma once
 #include "Movement/SteeringBehaviors/Steering/SteeringBehaviors.h"
+
 class Flock;
+
+// FLOCKING STEERING BEHAVIOR
+class FlockingSteeringBehaviors : public SteeringBehavior
+{
+public:
+	FlockingSteeringBehaviors(ASteeringAgent* pAgent, Flock* pFlock);
+	virtual SteeringOutput CalculateSteering(float deltaT, ASteeringAgent& pAgent) override;
+
+private:
+	// The blender that does the math
+	BlendedSteering* m_pBlendedSteering = nullptr;
+
+	// Individual behavior pointers to pass to the blender
+	Cohesion* m_pCohesion = nullptr;
+	Separation* m_pSeparation = nullptr;
+	VelocityMatch* m_pAlignment = nullptr;
+};
 
 //COHESION - FLOCKING
 //*******************
@@ -18,6 +36,28 @@ private:
 
 //SEPARATION - FLOCKING
 //*********************
+class Separation final : public Seek
+{
+public:
+	Separation(Flock* const pFlock) :pFlock(pFlock) {};
+
+	//Cohesion Behavior
+	SteeringOutput CalculateSteering(float deltaT, ASteeringAgent& pAgent) override;
+
+private:
+	Flock* pFlock = nullptr;
+};
 
 //VELOCITY MATCH - FLOCKING
 //************************
+class VelocityMatch final : public Seek
+{
+public:
+	VelocityMatch(Flock* const pFlock) :pFlock(pFlock) {};
+
+	//Cohesion Behavior
+	SteeringOutput CalculateSteering(float deltaT, ASteeringAgent& pAgent) override;
+
+private:
+	Flock* pFlock = nullptr;
+};
