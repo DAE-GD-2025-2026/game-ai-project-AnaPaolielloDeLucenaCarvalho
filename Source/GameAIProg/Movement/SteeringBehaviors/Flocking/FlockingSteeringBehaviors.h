@@ -62,4 +62,6 @@ private:
 	Cohesion* m_pCohesion = nullptr;
 	Separation* m_pSeparation = nullptr;
 	VelocityMatch* m_pAlignment = nullptr;
+	Seek* m_pSeek = nullptr;
+	Wander* m_pWander = nullptr;
 };

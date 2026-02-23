@@ -10,16 +10,21 @@ FlockingSteeringBehaviors::FlockingSteeringBehaviors(ASteeringAgent* pAgent, Flo
     m_pCohesion = new Cohesion(pFlock);
     m_pSeparation = new Separation(pFlock);
     m_pAlignment = new VelocityMatch(pFlock);
+    m_pSeek = new Seek();
+    m_pWander = new Wander();
 
     // Add them to the blender (Behavior, Weight)
     m_pBlendedSteering->AddBehaviour({ m_pCohesion, 0.2f });
     m_pBlendedSteering->AddBehaviour({ m_pSeparation, 0.5f });
     m_pBlendedSteering->AddBehaviour({ m_pAlignment, 0.3f });
+    m_pBlendedSteering->AddBehaviour({ m_pSeek, 0.3f });
+    m_pBlendedSteering->AddBehaviour({ m_pWander, 0.3f });
 }
 
 SteeringOutput FlockingSteeringBehaviors::CalculateSteering(float deltaT, ASteeringAgent& pAgent)
 {
-    // The blender handles the weighted sum of all behaviors [cite: 188]
+    m_pSeek->SetTarget(this->Target);
+    // The blender handles the weighted sum of all behaviors
     return m_pBlendedSteering->CalculateSteering(deltaT, pAgent);
 }
 

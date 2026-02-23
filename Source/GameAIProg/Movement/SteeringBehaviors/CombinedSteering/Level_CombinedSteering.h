@@ -18,7 +18,7 @@ class GAMEAIPROG_API ALevel_CombinedSteering : public ALevel_Base
 
 public:
 	// Sets default values for this actor's properties
-	UPROPERTY(EditAnywhere, Category = "AI")
+	UPROPERTY(EditAnywhere, Category = "AI") // Set in the editor, the class of the agent to spawn
 	TSubclassOf<ASteeringAgent> AgentClass;
 	ALevel_CombinedSteering();
 
