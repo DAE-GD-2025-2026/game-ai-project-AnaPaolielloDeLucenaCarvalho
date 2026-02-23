@@ -267,36 +267,38 @@ void Flock::RegisterNeighbors(ASteeringAgent* const pAgent)
 
 FVector2D Flock::GetAverageNeighborPos() const
 {
-	if (NrOfNeighbors == 0) // Is there neighbors in memory pool
+	int currentNrNeighbors = GetNrOfNeighbors();
+	if (currentNrNeighbors == 0) 
 	{
 		return FVector2D::ZeroVector;
 	}
 
 	FVector2D avgPosition = FVector2D::ZeroVector;
+	auto currentNeighbors = GetNeighbors();
 
-	// Implement
-	for (int i = 0; i < NrOfNeighbors; ++i) // Loop through neighbors in memory pool and add up their position
+	for (int i = 0; i < currentNrNeighbors; ++i) 
 	{
-		avgPosition += FVector2D(Neighbors[i]->GetActorLocation());
+		avgPosition += FVector2D(currentNeighbors[i]->GetActorLocation());
 	}
-	return avgPosition / static_cast<float>(NrOfNeighbors);
+	return avgPosition / static_cast<float>(currentNrNeighbors);
 }
 
 FVector2D Flock::GetAverageNeighborVelocity() const
 {
-	if (NrOfNeighbors == 0) // Is there neighbors in memory pool
+	int currentNrNeighbors = GetNrOfNeighbors();
+	if (currentNrNeighbors == 0) 
 	{
 		return FVector2D::ZeroVector;
 	}
 
 	FVector2D avgVelocity = FVector2D::ZeroVector;
+	auto currentNeighbors = GetNeighbors();
 
-	// Implement
-	for (int i = 0; i < NrOfNeighbors; ++i) // Loop through neighbors in memory pool and add up their velocity
+	for (int i = 0; i < currentNrNeighbors; ++i) 
 	{
-		avgVelocity += FVector2D(Neighbors[i]->GetVelocity());
+		avgVelocity += FVector2D(currentNeighbors[i]->GetVelocity());
 	}
-	return avgVelocity / static_cast<float>(NrOfNeighbors);
+	return avgVelocity / static_cast<float>(currentNrNeighbors);
 }
 
 void Flock::SetTarget_Seek(FSteeringParams const& Target)
