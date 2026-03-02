@@ -92,11 +92,11 @@ SteeringOutput Arrive::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
     }
 
 	// Debug
-    FVector CenterPos(Agent.GetPosition(), 0);
-    DrawDebugCircle(Agent.GetWorld(), CenterPos, TargetRadius, 50, FColor::Orange, false, -1.f, 0, 5.f, FVector(1, 0, 0), FVector(0, 1, 0), false);
-    DrawDebugCircle(Agent.GetWorld(), CenterPos, SlowRadius, 50, FColor::Blue, false, -1.f, 0, 5.f, FVector(1, 0, 0), FVector(0, 1, 0), false);
+    //FVector CenterPos(Agent.GetPosition(), 0);
+    //DrawDebugCircle(Agent.GetWorld(), CenterPos, TargetRadius, 50, FColor::Orange, false, -1.f, 0, 5.f, FVector(1, 0, 0), FVector(0, 1, 0), false);
+    //DrawDebugCircle(Agent.GetWorld(), CenterPos, SlowRadius, 50, FColor::Blue, false, -1.f, 0, 5.f, FVector(1, 0, 0), FVector(0, 1, 0), false);
 
-    DrawDebugPoint(Agent.GetWorld(), FVector(Target.Position, 0), 15.f, FColor::Red, false, -1.f);
+    //DrawDebugPoint(Agent.GetWorld(), FVector(Target.Position, 0), 15.f, FColor::Red, false, -1.f);
     
     SteeringOutput Steering{};
     Steering.LinearVelocity = toTarget.GetSafeNormal();
@@ -258,9 +258,9 @@ SteeringOutput Wander::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
     FVector2D wanderTarget = circleCenter + FVector2D(cos(totalAngle), sin(totalAngle)) * m_Radius;
 
 	// Debug
-    DrawBaseSteeringDebug(Agent, Agent.GetLinearVelocity(), (wanderTarget - agentPos).GetSafeNormal());
-    DrawDebugCircle(Agent.GetWorld(), FVector(circleCenter, 0), m_Radius, 50, FColor::Blue, false, -1.f, 0, 2.f, FVector(1, 0, 0), FVector(0, 1, 0), false);
-    DrawDebugPoint(Agent.GetWorld(), FVector(wanderTarget, 0), 15.f, FColor::Red, false, -1.f);
+    //DrawBaseSteeringDebug(Agent, Agent.GetLinearVelocity(), (wanderTarget - agentPos).GetSafeNormal());
+    //DrawDebugCircle(Agent.GetWorld(), FVector(circleCenter, 0), m_Radius, 50, FColor::Blue, false, -1.f, 0, 2.f, FVector(1, 0, 0), FVector(0, 1, 0), false);
+    //DrawDebugPoint(Agent.GetWorld(), FVector(wanderTarget, 0), 15.f, FColor::Red, false, -1.f);
 
     FTargetData wanderData;
     wanderData.Position = wanderTarget;

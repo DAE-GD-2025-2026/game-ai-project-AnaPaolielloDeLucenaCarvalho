@@ -128,7 +128,7 @@ void CellSpace::RenderCells() const
 		FVector center = min + (max - min) * 0.5f;
 		FVector extent = (max - min) * 0.5f;
 
-		DrawDebugBox(pWorld, center, extent, FColor::Blue, false, 0.0f, 0, 2.0f);
+		DrawDebugBox(pWorld, center, extent, FColor::Yellow, false, 0.0f, 0, 5.0f);
 
 		// Number of agents in the cell
 		if (cell.Agents.size() > 0)
