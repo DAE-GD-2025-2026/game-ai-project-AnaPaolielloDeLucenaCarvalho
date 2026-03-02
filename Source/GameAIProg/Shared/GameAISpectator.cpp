@@ -52,3 +52,8 @@ void AGameAISpectator::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
+void AGameAISpectator::SetCameraProjection(ECameraProjectionMode::Type ProjectionMode)
+{
+	Camera->SetProjectionMode(ProjectionMode);
+}
+

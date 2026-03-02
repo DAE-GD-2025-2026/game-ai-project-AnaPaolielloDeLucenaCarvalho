@@ -275,11 +275,18 @@ FVector2D Flock::GetAverageNeighborPos() const
 
 	FVector2D avgPosition = FVector2D::ZeroVector;
 	auto currentNeighbors = GetNeighbors();
+	
+	// If using spatial partitioning, we can directly use the neighbors from the partitioned space, otherwise we use the neighbors from the memory pool
+	if (bUseSpatialPartitioning)
+	{
+		currentNeighbors = pPartitionedSpace->GetNeighbors();
+	}
 
 	for (int i = 0; i < currentNrNeighbors; ++i) 
 	{
 		avgPosition += FVector2D(currentNeighbors[i]->GetActorLocation());
 	}
+
 	return avgPosition / static_cast<float>(currentNrNeighbors);
 }
 
