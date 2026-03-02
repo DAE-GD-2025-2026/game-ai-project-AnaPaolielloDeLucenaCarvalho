@@ -62,13 +62,7 @@ void UGraphEditorComponent::TickComponent(float DeltaTime, ELevelTick TickType, 
 	UpdateCurrentlyHoveredNode();
 	
 	// Check if NodeHover mapping should be applied or taken away
-	UpdateConditionalInputMapping();
-	
-	// Update latest MousePos
-	if (auto MousePosOptional = GetMouseWorldPos(); MousePosOptional.has_value())
-	{
-		LatestMousePos = *MousePosOptional;
-	}
+	UpdateConditionalInputMapping();	
 	
 	// If we're moving a node, move it to the mousepos
 	UpdateNodeMovement();
@@ -97,6 +91,11 @@ void UGraphEditorComponent::UpdateConditionalInputMapping()
 
 void UGraphEditorComponent::UpdateCurrentlyHoveredNode()
 {
+	if (bIsMovingNode)
+	{
+		return; 
+	}
+	
 	for (auto& Node : EditedGraph->GetNodes())
 	{
 		if (Node->GetId() == GameAI::Graphs::InvalidNodeId) continue;
@@ -120,7 +119,7 @@ void UGraphEditorComponent::UpdateCurrentlyHoveredNode()
 
 void UGraphEditorComponent::UpdateNodeMovement()
 {
-	if (!bIsMovingNode)
+	if (!bIsMovingNode || CurrentlyHoveredNodeId == GameAI::Graphs::InvalidNodeId)
 	{
 		return;
 	}
@@ -158,31 +157,6 @@ bool UGraphEditorComponent::GetEnhancedInput()
 bool UGraphEditorComponent::IsHoveringOverNode()
 {
 	return CurrentlyHoveredNodeId != GameAI::Graphs::InvalidNodeId;
-}
-
-std::optional<FVector> UGraphEditorComponent::GetMouseWorldPos() const
-{
-	if (!PlayerController)
-	{
-		// we don't have a player controller to get the mouse pos from!
-		return std::nullopt;
-	}
-	
-	FVector MouseWorldPos{};
-	FVector MouseWorldDirection{};
-	PlayerController->DeprojectMousePositionToWorld(MouseWorldPos, MouseWorldDirection);
-	
-	// TODO FIXME move to level and just provide a set latest mousepos func?
-	float MaxTraceDistance{20000.0f};
-
-	if (FHitResult HitResult{}; 
-		GetWorld()->LineTraceSingleByChannel(HitResult, MouseWorldPos,
-			MouseWorldDirection * MaxTraceDistance,ECC_Visibility))
-	{
-		return HitResult.Location;
-	}
-	
-	return std::nullopt;
 }
 
 void UGraphEditorComponent::CreateNode()

@@ -21,8 +21,11 @@ void ALevel_GraphTheory::BeginPlay()
 	Super::BeginPlay();
 	
 	// Add the graph editor to our player
-	if (PlayerController = Cast<APlayerController>(GetWorld()->GetFirstLocalPlayerFromController()->PlayerController); 
-		GraphEditorClass && PlayerController)
+	Renderer = GameAI::GraphRenderer{GetWorld()};
+	
+	PlayerController = GetWorld()->GetFirstPlayerController();
+	
+	if (PlayerController && GraphEditorClass)
 	{
 		PlayerGraphEditor = NewObject<UGraphEditorComponent>(PlayerController->GetPawn(), GraphEditorClass);
 		PlayerGraphEditor->RegisterComponent();
@@ -31,8 +34,8 @@ void ALevel_GraphTheory::BeginPlay()
 	}
 	else
 	{
-		UE_LOG(LogTemp, Error, TEXT("Unable to get PlayerController from LocalPlayer or GraphEditorClass is null"))
-		return;
+		UE_LOG(LogTemp, Error, TEXT("Unable to get PlayerController or GraphEditorClass is null"));
+		//return;
 	}
 	
 	// Make the view orthogonal for less perspective issues
@@ -41,12 +44,20 @@ void ALevel_GraphTheory::BeginPlay()
 		Player->SetCameraProjection(ECameraProjectionMode::Orthographic);
 	}
 	
-	// TODO Make the graph and a couple connected nodes here...
+	// Make the graph and a couple connected nodes here...
+	int n0 = Graph.AddNode(std::make_unique<GameAI::Node>(FVector2D(-200, 0)));
+	int n1 = Graph.AddNode(std::make_unique<GameAI::Node>(FVector2D(200, 0)));
+	Graph.AddConnection(n0, n1);
 	
 	// Spawn the Agent
 	Agent = GetWorld()->SpawnActor<ASteeringAgent>(SteeringAgentClass, 
 	FVector{0,0,90}, FRotator::ZeroRotator);
-	Agent->SetSteeringBehavior(&PathFollow);
+	
+	// Safety check before assigning
+	if (Agent) 
+	{
+		Agent->SetSteeringBehavior(&PathFollow);
+	}
 }
 
 void ALevel_GraphTheory::BeginDestroy()
@@ -57,6 +68,19 @@ void ALevel_GraphTheory::BeginDestroy()
 void ALevel_GraphTheory::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	
+	if (PlayerController && PlayerGraphEditor)
+	{
+		FVector MouseWorldPos, MouseWorldDir;
+		if (PlayerController->DeprojectMousePositionToWorld(MouseWorldPos, MouseWorldDir))
+		{
+			FHitResult HitResult;
+			if (GetWorld()->LineTraceSingleByChannel(HitResult, MouseWorldPos, MouseWorldPos + (MouseWorldDir * 20000.f), ECC_Visibility))
+			{
+				PlayerGraphEditor->SetLatestMousePos(HitResult.Location);
+			}
+		}
+	}
 	
 #pragma region UI
 	{
@@ -99,19 +123,39 @@ void ALevel_GraphTheory::Tick(float DeltaTime)
 	
 	Renderer.RenderGraph(Graph);
 	
-	// TODO Check if the graph has updated
-	// TODO if so, run the EulerianPath algorithm
-	// TODO if a path is found, have the agent follow it
+	// Check if the graph has updated (tracking connections)
+	static int lastConnectionCount = -1;
+	int currentConnCount = Graph.GetConnections().size();
+
+	if (currentConnCount != lastConnectionCount)
+	{
+		lastConnectionCount = currentConnCount;
+
+		// Run the EulerianPath algorithm
+		GameAI::EulerianPath ePath(&Graph);
+		GameAI::Eulerianity e;
+		auto trail = ePath.FindPath(e);
+
+		// If a path is found, have the agent follow it
+		UpdateAgentPath(trail);
+	}
 }
 
 void ALevel_GraphTheory::UpdateAgentPath(std::vector<Node*> const& Trail)
 {
 	std::vector<FVector2D> path{};
 	
-	// TODO convert Node vector to positions vector
+	// Convert Node vector to positions vector
+	for (auto* node : Trail)
+	{
+		if (node)
+		{
+			path.push_back(node->GetPosition());
+		}
+	}
 
 	PathFollow.SetPath(path);
-	if (path.size() > 0)
+	if (Agent && path.size() > 0)
 	{
 		Agent->SetPosition(path[0]);
 	}

@@ -64,43 +64,23 @@ SteeringOutput Flee::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
 // ARRIVE
 SteeringOutput Arrive::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
 {
-	// Store the original max speed on the first call
-    if (m_OriginalMaxSpeed < 0.f)
-    {
-        m_OriginalMaxSpeed = Agent.GetMaxLinearSpeed();
-    }
-
-	// Calculate the distance to the target and adjust speed based on proximity
-    FVector2D toTarget = Target.Position - Agent.GetPosition();
-    float Distance = toTarget.Size();
-    const float SlowRadius = 300.f;
-    const float TargetRadius = 50.f;
-
-	// If within target radius, stop. If within slow radius, slow down proportionally. Otherwise, move at max speed.
-    if (Distance < TargetRadius)
-    {
-        Agent.SetMaxLinearSpeed(0.f);
-    }
-    else if (Distance < SlowRadius)
-    {
-        float mappedSpeed = m_OriginalMaxSpeed * ((Distance - TargetRadius) / (SlowRadius - TargetRadius));
-        Agent.SetMaxLinearSpeed(mappedSpeed);
-    }
-    else
-    {
-        Agent.SetMaxLinearSpeed(m_OriginalMaxSpeed);
-    }
-
-	// Debug
-    //FVector CenterPos(Agent.GetPosition(), 0);
-    //DrawDebugCircle(Agent.GetWorld(), CenterPos, TargetRadius, 50, FColor::Orange, false, -1.f, 0, 5.f, FVector(1, 0, 0), FVector(0, 1, 0), false);
-    //DrawDebugCircle(Agent.GetWorld(), CenterPos, SlowRadius, 50, FColor::Blue, false, -1.f, 0, 5.f, FVector(1, 0, 0), FVector(0, 1, 0), false);
-
-    //DrawDebugPoint(Agent.GetWorld(), FVector(Target.Position, 0), 15.f, FColor::Red, false, -1.f);
-    
     SteeringOutput Steering{};
-    Steering.LinearVelocity = toTarget.GetSafeNormal();
-    DrawBaseSteeringDebug(Agent, Agent.GetLinearVelocity(), Steering.LinearVelocity);
+    FVector2D toTarget = Target.Position - Agent.GetPosition();
+    float distance = toTarget.Size();
+
+    if (distance > 0.1f)
+    {
+        float slowingRadius = 150.0f;
+        float speed = Agent.GetMaxLinearSpeed();
+        
+        if (distance < slowingRadius)
+        {
+            speed = speed * (distance / slowingRadius);
+        }
+
+        Steering.LinearVelocity = toTarget * (speed / distance);
+        Steering.IsValid = true;
+    }
 
     return Steering;
 }

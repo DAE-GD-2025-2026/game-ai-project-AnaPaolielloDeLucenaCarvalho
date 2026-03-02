@@ -46,6 +46,8 @@ public:
 	void SetEditedGraph(GameAI::Graph* pEditedGraph) { EditedGraph = pEditedGraph; }
 	void SetNodeFactory(GameAI::IGraphNodeFactory* pNodeFactory) { NodeFactory = pNodeFactory; }
 	bool HasGraphUpdated();
+	
+	void SetLatestMousePos(FVector const& MousePos) { LatestMousePos = MousePos; }
 
 protected:
 	// Called when the game starts
