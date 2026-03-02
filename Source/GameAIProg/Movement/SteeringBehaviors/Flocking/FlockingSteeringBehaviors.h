@@ -1,5 +1,6 @@
 #pragma once
 #include "Movement/SteeringBehaviors/Steering/SteeringBehaviors.h"
+#include "Movement/SteeringBehaviors/CombinedSteering/CombinedSteeringBehaviors.h"
 
 class Flock;
 class BlendedSteering;
@@ -64,4 +65,8 @@ private:
 	VelocityMatch* m_pAlignment = nullptr;
 	Seek* m_pSeek = nullptr;
 	Wander* m_pWander = nullptr;
+	
+	PrioritySteering* m_pPrioritySteering = nullptr;
+	Evade* m_pEvade = nullptr;
+	Flock* m_pFlock = nullptr;
 };

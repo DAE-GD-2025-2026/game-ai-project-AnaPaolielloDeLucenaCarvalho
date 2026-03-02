@@ -37,6 +37,9 @@ public:
 	FVector2D GetAverageNeighborVelocity() const;
 
 	void SetTarget_Seek(FSteeringParams const & Target);
+	
+	// Evade target
+	ASteeringAgent* GetAgentToEvade() const { return pAgentToEvade; }
 
 private:
 	// For debug rendering purposes

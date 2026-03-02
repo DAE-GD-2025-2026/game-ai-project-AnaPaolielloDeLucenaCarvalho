@@ -33,12 +33,12 @@ void DrawBaseSteeringDebug(ASteeringAgent& Agent, const FVector2D& CurrentVeloci
 
 // SEEK
 SteeringOutput Seek::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
-{
-	// Calculate the desired velocity towards the target
+{    
     SteeringOutput Steering{};
-    Steering.LinearVelocity = (Target.Position - Agent.GetPosition()).GetSafeNormal();
-
-    FVector dir = FVector(Steering.LinearVelocity.GetSafeNormal(), 0) * 75.f;
+    
+    // Multiply by max speed
+    Steering.LinearVelocity = (Target.Position - Agent.GetPosition()).GetSafeNormal() * Agent.GetMaxLinearSpeed();
+    Steering.IsValid = true;
 
     // Debug
     DrawDebugPoint(Agent.GetWorld(), FVector(Target.Position, 0), 15.f, FColor::Red, false, -1.f);
@@ -196,11 +196,20 @@ SteeringOutput Pursuit::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
 SteeringOutput Evade::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
 {
     SteeringOutput Steering{};
+    Steering.IsValid = false;
 
+    FVector2D toTarget = Target.Position - Agent.GetPosition();
+    float distance = toTarget.Size();
+    float evadeRadius = 300.f;
+
+    if (distance > evadeRadius)
+    {
+        return Steering; 
+    }
+    
     if (m_LastTargetPosition.IsZero())
     {
         m_LastTargetPosition = Target.Position;
-        return Steering;
     }
 
     FVector2D moveDelta = Target.Position - m_LastTargetPosition;
@@ -221,10 +230,7 @@ SteeringOutput Evade::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
     }
     m_LastTargetPosition = Target.Position;
 
-    FVector2D toTarget = Target.Position - Agent.GetPosition();
-    float distance = toTarget.Size();
     float agentSpeed = Agent.GetMaxLinearSpeed();
-
     float t = 0.f;
     if (agentSpeed > 1.f)
     {
@@ -233,11 +239,11 @@ SteeringOutput Evade::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
     t = FMath::Clamp(t, 0.f, 2.f);
 
     FVector2D predictedPos = Target.Position + (m_CurrentVelocity * t);
-
-    Steering.LinearVelocity = (Agent.GetPosition() - predictedPos).GetSafeNormal();
+    
+    Steering.LinearVelocity = (Agent.GetPosition() - predictedPos).GetSafeNormal() * Agent.GetMaxLinearSpeed();
+    Steering.IsValid = true; 
 
     DrawDebugPoint(Agent.GetWorld(), FVector(Target.Position, 0), 12, FColor::Red, false, -1.f);
-    DrawDebugPoint(Agent.GetWorld(), FVector(predictedPos, 0), 15.f, FColor::Purple, false, -1.f);
     DrawBaseSteeringDebug(Agent, Agent.GetLinearVelocity(), Steering.LinearVelocity);
 
     return Steering;

@@ -85,18 +85,6 @@ void Flock::Tick(float DeltaTime)
 		m_pEvade->SetTarget(FSteeringParams{ FVector2D(pAgentToEvade->GetActorLocation()) });
 	}
 	
-	if (bUseSpatialPartitioning)
-	{
-		pPartitionedSpace->EmptyCells();
-		for (ASteeringAgent* pAgent : Agents)
-		{
-			if (IsValid(pAgent))
-			{
-				pPartitionedSpace->AddAgent(*pAgent);
-			}
-		}
-	}
-	
 	for (int i = 0; i < Agents.Num(); ++i)
 	{
 		ASteeringAgent* pAgent = Agents[i];
@@ -122,6 +110,13 @@ void Flock::Tick(float DeltaTime)
 					pAgent->SetActorLocation(Location, false, nullptr, ETeleportType::TeleportPhysics);
 				}
 			}
+			
+			if (bUseSpatialPartitioning)
+			{
+				FVector2D currentPos(pAgent->GetActorLocation());
+				pPartitionedSpace->UpdateAgentCell(*pAgent, OldPositions[i]);
+				OldPositions[i] = currentPos;
+			}
 		}
 	}
 }
@@ -142,6 +137,13 @@ void Flock::RenderDebug()
 
 	if (DebugRenderNeighborhood) RenderNeighborhood();
 	if (bUseSpatialPartitioning && DebugRenderPartitions) pPartitionedSpace->RenderCells();
+	
+	// Evade in Red
+	if (pAgentToEvade && IsValid(pAgentToEvade))
+	{
+		FVector predatorLoc = pAgentToEvade->GetActorLocation();
+		DrawDebugCircle(pWorld, FVector(predatorLoc.X, predatorLoc.Y, 20.f), 300.f, 50, FColor::Red, false, -1.f, 0, 5.f, FVector(1, 0, 0), FVector(0, 1, 0), false);
+	}
 }
 
 void Flock::ImGuiRender(ImVec2 const& WindowPos, ImVec2 const& WindowSize)
@@ -230,14 +232,17 @@ void Flock::RenderNeighborhood()
 	}
 
 	RegisterNeighbors(Agents[0]);
-	DrawDebugCircle(pWorld, FVector(Agents[0]->GetActorLocation().X, Agents[0]->GetActorLocation().Y, 20.f), 40, 50, FColor::Purple, false, -1.f, 0, 5.f, FVector(1, 0, 0), FVector(0, 1, 0), false);
+    
+	DrawDebugCircle(pWorld, FVector(Agents[0]->GetActorLocation().X, Agents[0]->GetActorLocation().Y, 20.f), NeighborhoodRadius, 50, FColor::Purple, false, -1.f, 0, 5.f, FVector(1, 0, 0), FVector(0, 1, 0), false);
 
-	for (int i = 0; i < NrOfNeighbors; ++i) 
+	int currentNrNeighbors = GetNrOfNeighbors();
+	auto currentNeighbors = GetNeighbors();
+
+	for (int i = 0; i < currentNrNeighbors; ++i) 
 	{
-		if (IsValid(Neighbors[i])) 
+		if (IsValid(currentNeighbors[i])) 
 		{
-			// TODO - I only see this once i turn off spatial partitioning, after its off i can turn it back on and keep seeing it how do i fix it?
-			DrawDebugCircle(pWorld, FVector(Neighbors[i]->GetActorLocation().X, Neighbors[i]->GetActorLocation().Y, 20.f), 40.f, 50, FColor::Emerald, false, -1.f, 0, 5.f, FVector(1, 0, 0), FVector(0, 1, 0), false);
+			DrawDebugCircle(pWorld, FVector(currentNeighbors[i]->GetActorLocation().X, currentNeighbors[i]->GetActorLocation().Y, 20.f), 40.f, 50, FColor::Emerald, false, -1.f, 0, 5.f, FVector(1, 0, 0), FVector(0, 1, 0), false);
 		}
 	}
 }

@@ -4,8 +4,11 @@
 #include "../SteeringHelpers.h"
 
 FlockingSteeringBehaviors::FlockingSteeringBehaviors(ASteeringAgent* pAgent, Flock* pFlock)
+    : m_pFlock(pFlock)
 {
+    m_pPrioritySteering = new PrioritySteering(std::vector<ISteeringBehavior*>{});
     m_pBlendedSteering = new BlendedSteering(std::vector<BlendedSteering::WeightedBehavior>{});
+    m_pEvade = new Evade();
 
     m_pCohesion = new Cohesion(pFlock);
     m_pSeparation = new Separation(pFlock);
@@ -13,26 +16,39 @@ FlockingSteeringBehaviors::FlockingSteeringBehaviors(ASteeringAgent* pAgent, Flo
     m_pSeek = new Seek();
     m_pWander = new Wander();
 
-    // Add them to the blender (Behavior, Weight)
+    // Flocking Blender 
     m_pBlendedSteering->AddBehaviour({ m_pCohesion, 0.2f });
     m_pBlendedSteering->AddBehaviour({ m_pSeparation, 0.5f });
     m_pBlendedSteering->AddBehaviour({ m_pAlignment, 0.3f });
     m_pBlendedSteering->AddBehaviour({ m_pSeek, 0.3f });
     m_pBlendedSteering->AddBehaviour({ m_pWander, 0.3f });
+
+    // Priority Steering 
+    m_pPrioritySteering->AddBehaviour(m_pEvade);
+    m_pPrioritySteering->AddBehaviour(m_pBlendedSteering);
 }
 
 SteeringOutput FlockingSteeringBehaviors::CalculateSteering(float deltaT, ASteeringAgent& pAgent)
 {
     m_pSeek->SetTarget(this->Target);
-    // The blender handles the weighted sum of all behaviors
-    return m_pBlendedSteering->CalculateSteering(deltaT, pAgent);
+
+    if (m_pFlock && m_pFlock->GetAgentToEvade())
+    {
+        FTargetData EvadeTarget;
+        EvadeTarget.Position = FVector2D(m_pFlock->GetAgentToEvade()->GetActorLocation());
+        m_pEvade->SetTarget(EvadeTarget);
+    }
+
+    return m_pPrioritySteering->CalculateSteering(deltaT, pAgent);
 }
 
 //*******************
 //COHESION (FLOCKING)
 SteeringOutput Cohesion::CalculateSteering(float deltaT, ASteeringAgent& pAgent)
 {
-	// Move towards the average position of your neighbors
+    // If no neighbors, exert no cohesion force
+    if (pFlock->GetNrOfNeighbors() == 0) return SteeringOutput{};
+
     FVector2D avgPos = pFlock->GetAverageNeighborPos();
     this->SetTarget(FSteeringParams{ avgPos }); 
     return Seek::CalculateSteering(deltaT, pAgent);
@@ -69,8 +85,13 @@ SteeringOutput Separation::CalculateSteering(float deltaT, ASteeringAgent& pAgen
 //VELOCITY MATCH (FLOCKING)
 SteeringOutput VelocityMatch::CalculateSteering(float deltaT, ASteeringAgent& pAgent)
 {
-    // Match the average velocity of the group
+    if (pFlock->GetNrOfNeighbors() == 0) return SteeringOutput{};
+
     SteeringOutput steering = {};
     steering.LinearVelocity = pFlock->GetAverageNeighborVelocity();
+    
+    steering.LinearVelocity.Normalize();
+    steering.LinearVelocity *= pAgent.GetMaxLinearSpeed();
+    
     return steering;
 }

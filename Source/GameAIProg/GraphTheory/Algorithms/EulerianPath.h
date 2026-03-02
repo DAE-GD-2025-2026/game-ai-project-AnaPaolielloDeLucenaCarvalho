@@ -40,10 +40,10 @@ namespace GameAI
 		}
 		
 		// TODO Count nodes with odd degree
-		if (/* TODO if there are more than 2 nodes with an odd degree */)
-		{
-			return Eulerianity::notEulerian;
-		}
+		//if (/* TODO if there are more than 2 nodes with an odd degree */)
+		//{
+		//	return Eulerianity::notEulerian;
+		//}
 		
 		// TODO A connected graph with more than 2 nodes with an odd degree (an odd amount of connections) is not Eulerian
 
