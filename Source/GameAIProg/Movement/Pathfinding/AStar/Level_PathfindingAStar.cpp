@@ -209,7 +209,7 @@ void ALevel_PathfindingAStar::UpdateImGui()
 		ImGui::Spacing();
 		
 		// conditional debug draws
-		ImGui::Checkbox("Grid", &bDrawGrid);
+		//ImGui::Checkbox("Grid", &bDrawGrid);
 		ImGui::Checkbox("NodeNumbers", &bDrawNodeNumbers);
 		ImGui::Checkbox("Connections", &bDrawConnections);
 		ImGui::Checkbox("Connections Costs", &bDrawConnectionsCosts);

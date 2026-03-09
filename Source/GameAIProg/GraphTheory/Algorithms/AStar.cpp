@@ -33,13 +33,16 @@ std::vector<Node*> AStar::FindPath(Node* const pStartNode, Node* const pDestinat
 
 	// While Loop (part 1)
 	while (!openList.empty())
-	{
+	{		
 		// A. Get record from the open list with lowest F-score
-		currentNodeRecord = *std::min_element(openList.begin(), openList.end());
+		auto bestRecordIt = std::min_element(openList.begin(), openList.end());
+		currentNodeRecord = *bestRecordIt;		
+		openList.erase(bestRecordIt);
 
 		// B. Check if that record refers to the end node
 		if (currentNodeRecord.pNode == pDestinationNode)
 		{
+			closedList.push_back(currentNodeRecord);
 			break;
 		}
 
@@ -120,6 +123,10 @@ std::vector<Node*> AStar::FindPath(Node* const pStartNode, Node* const pDestinat
 		if (prevIt != closedList.end())
 		{
 			currentNodeRecord = *prevIt;
+		}
+		else
+		{
+			break;
 		}
 	}
 	
