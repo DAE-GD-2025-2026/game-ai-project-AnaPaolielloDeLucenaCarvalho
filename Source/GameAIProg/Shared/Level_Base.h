@@ -43,10 +43,13 @@ protected:
 	FVector2D ViewportSize{};
 	ImVec2 WindowSize{};
 	ImVec2 WindowPos{};
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Debug")
+	bool VisualizeMouseTarget{true};
 
-	// Mouse target render toggle
-	bool VisualizeMouseTarget{true}; // TODO unused so far
-
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input")
+	float MaxTraceDistance{20000.0f};
+	
 	UPROPERTY(EditAnywhere)
 	AWorldTrimVolume* TrimWorld{nullptr};
 

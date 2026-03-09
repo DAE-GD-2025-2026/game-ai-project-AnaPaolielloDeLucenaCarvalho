@@ -94,7 +94,28 @@ void ALevel_PathfindingAStar::Tick(float DeltaTime)
 	Renderer->RenderGraph(*TerrainGraph);
 	TerrainGraph->DebugDrawCells(GetWorld());
 	TerrainGraph->DrawTerrain(GetWorld());
-	// TODO implement conditional debug draws
+
+	// Renderer Options based on ImGui
+	GameAI::GraphRenderOptions RenderOptions;
+	RenderOptions.bDrawNodeIds = bDrawNodeNumbers; 
+	RenderOptions.bDrawConnections = bDrawConnections;
+	RenderOptions.bDrawConnectionWeights = bDrawConnectionsCosts; 
+	Renderer->SetRenderOptions(RenderOptions);
+
+	// Render Graph Elements
+	TerrainGraph->DrawTerrain(GetWorld());
+    
+	// Conditional Grid Draw
+	if (bDrawGrid)
+	{
+		TerrainGraph->DebugDrawCells(GetWorld());
+	}
+
+	// Mouse Visualization
+	if (VisualizeMouseTarget)
+	{
+		DrawDebugSphere(GetWorld(), FVector(LatestMouseWorldPos.X, LatestMouseWorldPos.Y, 10.0f), 25.0f, 8, FColor::Magenta, false, -1.0f, 0, 3.0f);
+	}
 }
 
 void ALevel_PathfindingAStar::CalculatePath()
@@ -113,7 +134,8 @@ void ALevel_PathfindingAStar::CalculatePath()
 
 		FoundPath = pathfinder.FindPath(startNode, endNode);
 		// std::cout << "New path calculated using " << typeid(pathfinder).name() << std::endl;
-		UE_LOG(LogTemp, Log, TEXT("New path calculated using %hs"), typeid(pathfinder).name());
+		// UE_LOG(LogTemp, Log, TEXT("New path calculated using %hs"), typeid(pathfinder).name()); -> this gave me an error
+		UE_LOG(LogTemp, Log, TEXT("New path calculated using BFS"));
 		UpdateAgentPath(FoundPath);
 	}
 	else
@@ -186,11 +208,11 @@ void ALevel_PathfindingAStar::UpdateImGui()
 		ImGui::Text("A* Pathfinding");
 		ImGui::Spacing();
 		
-		// TODO conditional debug draws
-		// ImGui::Checkbox("Grid", &bDrawGrid);
-		// ImGui::Checkbox("NodeNumbers", &bDrawNodeNumbers);
-		// ImGui::Checkbox("Connections", &bDrawConnections);
-		// ImGui::Checkbox("Connections Costs", &bDrawConnectionsCosts);
+		// conditional debug draws
+		ImGui::Checkbox("Grid", &bDrawGrid);
+		ImGui::Checkbox("NodeNumbers", &bDrawNodeNumbers);
+		ImGui::Checkbox("Connections", &bDrawConnections);
+		ImGui::Checkbox("Connections Costs", &bDrawConnectionsCosts);
 		if (ImGui::Combo("", &SelectedHeuristic, "Manhattan\0Euclidean\0SqEuclidean\0Octile\0Chebyshev", 4))
 		{
 			switch (SelectedHeuristic)
