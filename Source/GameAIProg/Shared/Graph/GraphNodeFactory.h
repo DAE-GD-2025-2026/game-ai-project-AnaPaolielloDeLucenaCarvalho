@@ -33,6 +33,22 @@ namespace GameAI
 		}
 	};
 	
+	class TerrainNodeFactory : public IGraphNodeFactory
+	{
+	public:
+		
+		virtual ~TerrainNodeFactory() override = default;
+		virtual std::unique_ptr<Node> const CreateNode(const FVector2D& Position) const override
+		{
+			return std::unique_ptr<Node>(new TerrainNode(Position));
+		}
+		virtual std::unique_ptr<Node> const CloneNode(const Node& Other) const override
+		{
+			TerrainNode const * AsTerrainNode = dynamic_cast<TerrainNode const *>(&Other);
+			return std::unique_ptr<Node>(new TerrainNode(*AsTerrainNode));
+		}
+	};
+	
 	/*
 	 * Template specialization example
 		

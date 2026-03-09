@@ -19,6 +19,7 @@ namespace GameAI
 		// Nodes
 		bool bDrawNodes{true};
 		bool bDrawNodeIds{true};
+		bool bDrawHighlightedNodes{true}; // if true will prefer to draw the highlight than the node
 		
 		// Connections
 		bool bDrawConnections{true};
@@ -32,6 +33,8 @@ namespace GameAI
 		~GraphRenderer() = default;
 		
 		void SetRenderOptions(GraphRenderOptions const & NewOptions);
+		GraphRenderOptions const & GetRenderOptions() const {return Options;}
+		void SetHighlightedNodes(std::vector<std::pair<int, FColor>> const & NodesToHighlight);
 		
 		void RenderGraph(Graph const & Graph) const;
 
@@ -39,9 +42,17 @@ namespace GameAI
 		UWorld* World;
 		GraphRenderOptions Options{};
 		
+		std::vector<std::pair<int, FColor>> HighlightedNodes;
+		
 		template <typename NodeType>
 		requires GameAI::is_drawable_node<NodeType>
 		void DrawNode(NodeType const & Node, float Radius = Graphs::DefaultNodeDrawRadius,
+			FColor Color = Graphs::DefaultNodeDrawColor, float DrawHeight = Graphs::DefaultGraphDrawHeight,
+			int Segments = Graphs::DefaultNodeDrawSegments) const;
+		
+		template <typename NodeType>
+		requires GameAI::is_drawable_node<NodeType>
+		void DrawNodeSphere(NodeType const & Node, float Radius = Graphs::DefaultNodeDrawRadius,
 			FColor Color = Graphs::DefaultNodeDrawColor, float DrawHeight = Graphs::DefaultGraphDrawHeight,
 			int Segments = Graphs::DefaultNodeDrawSegments) const;
 		
@@ -71,13 +82,39 @@ namespace GameAI
 		DrawDebugCircle(World, DrawTransform.ToMatrixNoScale(), Radius, Segments, Color, 
 			false, -1, 0, 3);
 
-		if (Options.bDrawConnections)
+		if (Options.bDrawNodeIds)
 		{
 			FString NodeId{FString::Printf(TEXT("%d"), static_cast<int>(Node.GetId()))};
 			DrawDebugString(World, DrawTransform.GetLocation(), NodeId,nullptr, FColor::White, 0);
 		}
 	}
-	
+
+	template <typename NodeType> requires GameAI::is_drawable_node<NodeType>
+	void GraphRenderer::DrawNodeSphere(NodeType const& Node, float Radius, FColor Color, float DrawHeight,
+		int Segments) const
+	{
+		// If data exists, use it instead
+		if constexpr (requires {{Node.GetRadius()} -> std::convertible_to<float>;})
+		{
+			Radius = Node.GetRadius();
+		}
+		if constexpr (requires {{ Node.GetColor() } -> std::convertible_to<FColor>;})
+		{
+			Color = Node.GetColor();
+		}
+		
+		FTransform DrawTransform{FVector::UpVector.ToOrientationRotator(),
+			FVector{Node.GetPosition(), DrawHeight}};
+		DrawDebugSphere(World, DrawTransform.GetLocation(), Radius, Segments, Color, 
+			false, -1, 0, 3);
+
+		if (Options.bDrawNodeIds)
+		{
+			FString NodeId{FString::Printf(TEXT("%d"), static_cast<int>(Node.GetId()))};
+			DrawDebugString(World, DrawTransform.GetLocation(), NodeId,nullptr, FColor::White, 0);
+		}
+	}
+
 	template <typename ConnectionType>
 	requires GameAI::is_connection_type<ConnectionType>
 	void GraphRenderer::DrawConnection(Graph const & Graph, ConnectionType const & Connection, FColor const & Color) const
@@ -102,8 +139,8 @@ namespace GameAI
 				false, -1, 0, 5);
 		}
 		
-		// Draw weight (if not 0)
-		if (Options.bDrawConnectionWeights && !FMath::IsNearlyZero(Connection.GetWeight()))
+		// Draw weight
+		if (Options.bDrawConnectionWeights)
 		{
 			FVector Middle = End + (Start - End) / 2;
 			

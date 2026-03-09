@@ -83,11 +83,14 @@ namespace GameAI
 		}
 
 		// If Semi-Eulerian, start at an odd node
+		// TODO - check whcih one is odd and pick one to start, we need 2 odd nodes
 		int currentNodeId = Nodes[0]->GetId();
 		if (eulerianity == Eulerianity::semiEulerian)
 		{
-			for (auto* node : Nodes) {
-				if (graphCopy.FindConnectionsFrom(node->GetId()).size() % 2 != 0) {
+			for (auto* node : Nodes)
+			{
+				if (graphCopy.FindConnectionsFrom(node->GetId()).size() % 2 != 0)
+				{
 					currentNodeId = node->GetId();
 					break;
 				}

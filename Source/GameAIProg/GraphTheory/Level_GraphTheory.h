@@ -26,8 +26,6 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 protected:
-	UPROPERTY()
-	APlayerController* PlayerController{nullptr};
 	
 	virtual void BeginPlay() override;
 	virtual void BeginDestroy() override;

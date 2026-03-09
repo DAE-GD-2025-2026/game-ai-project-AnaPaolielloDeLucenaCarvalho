@@ -35,7 +35,23 @@ namespace GameAI
     {
         return Id == OtherPtr->Id;
     }
-    
+
+    TerrainNode::TerrainNode(FVector2D const& Position, Type Type)
+        : Node{Position}
+        , Terrain{Type}
+    {
+    }
+
+    void TerrainNode::SetType(Type NewType)
+    {
+        Terrain = NewType;
+    }
+
+    TerrainNode::Type TerrainNode::GetType() const
+    {
+        return Terrain;
+    }
+
 #pragma endregion Nodes
 
 #pragma region Connections
@@ -232,6 +248,16 @@ namespace GameAI
         return Result;
     }
 
+    std::vector<Connection*> Graph::FindConnectionsWith(int NodeId) const
+    {
+        std::vector<Connection*> Result{};
+        auto FromConnections = FindConnectionsFrom(NodeId);
+        auto ToConnections = FindConnectionsTo(NodeId);
+        std::ranges::move(FromConnections, std::back_inserter(Result));
+        std::ranges::move(ToConnections, std::back_inserter(Result));
+        return Result;
+    }
+
     void Graph::AddConnection(std::unique_ptr<Connection> NewConnection)
     {
         // Get an inverse copy for later
@@ -294,6 +320,18 @@ namespace GameAI
         UE_LOG(LogTemp, Warning, TEXT("Attempted to remove non-existant connection from %d to %d"),
             FromNodeId, ToNodeId);
         return false;
+    }
+
+    bool Graph::RemoveConnectionsFrom(int FromId)
+    {
+        return 0 < std::erase_if(Connections,
+            [=](auto const & Connection){return Connection->GetFromId() == FromId;});
+    }
+
+    bool Graph::RemoveConnectionsTo(int ToId)
+    {
+        return 0 < std::erase_if(Connections,
+    [=](auto const & Connection){return Connection->GetToId() == ToId;});
     }
 
     bool Graph::GetIsDirectional() const
