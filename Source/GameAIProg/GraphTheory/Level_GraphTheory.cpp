@@ -5,6 +5,7 @@
 
 #include "Algorithms/EulerianPath.h"
 #include "Shared/GameAISpectator.h"
+#include <map>
 
 using namespace GameAI;
 
@@ -123,20 +124,22 @@ void ALevel_GraphTheory::Tick(float DeltaTime)
 	
 	Renderer.RenderGraph(Graph);
 	
-	// Check if the graph has updated (tracking connections)
 	int currentConnCount = Graph.GetConnections().size();
-
-	if (currentConnCount != lastConnectionCount)
+	int currentNodeCount = Graph.GetActiveNodes().size();
+	
+	static int lastNodeCount = -1;
+	
+	if (currentConnCount != lastConnectionCount || currentNodeCount != lastNodeCount)
 	{
 		lastConnectionCount = currentConnCount;
+		lastNodeCount = currentNodeCount;
 
-		// Run the EulerianPath algorithm
 		GameAI::EulerianPath ePath(&Graph);
 		GameAI::Eulerianity e;
 		auto trail = ePath.FindPath(e);
-
-		// If a path is found, have the agent follow it
 		UpdateAgentPath(trail);
+
+		UpdateGraphColoring();
 	}
 }
 
@@ -158,6 +161,98 @@ void ALevel_GraphTheory::UpdateAgentPath(std::vector<Node*> const& Trail)
 	{
 		Agent->SetPosition(path[0]);
 	}
+}
+
+void ALevel_GraphTheory::UpdateGraphColoring()
+{
+    std::vector<GameAI::Node*> nodes = Graph.GetActiveNodes();
+    if (nodes.empty()) return;
+
+    // colors to pick from
+    std::vector<FColor> Palette =
+    {
+        FColor::Red, 
+    	FColor::Green, 
+    	FColor::Blue, 
+        FColor::Yellow, 
+    	FColor::Cyan, 
+    	FColor::Magenta, 
+    	FColor::Orange, 
+    	FColor::Purple
+    };
+
+    std::map<int, int> NodeColors;
+
+    // all nodes  uncolored
+    for (auto* node : nodes)
+    {
+        NodeColors[node->GetId()] = -1;
+    }
+
+    NodeColors[nodes[0]->GetId()] = 0;
+
+    std::vector<bool> AvailableColors(Palette.size(), true);
+
+    for (int i = 1; i < nodes.size(); ++i)
+    {
+        int currentNodeId = nodes[i]->GetId();
+
+        std::fill(AvailableColors.begin(), AvailableColors.end(), true);
+
+        // check neighbors of current node
+        auto connections = Graph.FindConnectionsFrom(currentNodeId);
+        for (auto* conn : connections)
+        {
+            int neighborId = conn->GetToId();
+            
+            // neighbor has a color, that color = UNAVAILABLE
+            if (NodeColors[neighborId] != -1)
+            {
+                AvailableColors[NodeColors[neighborId]] = false;
+            }
+        }
+        
+        for (auto& conn : Graph.GetConnections())
+        {
+            if (conn->GetToId() == currentNodeId)
+            {
+                int neighborId = conn->GetFromId();
+                if (NodeColors[neighborId] != -1)
+                {
+                    AvailableColors[NodeColors[neighborId]] = false;
+                }
+            }
+        }
+
+        // find available color
+        int chosenColor = 0;
+        for (int c = 0; c < AvailableColors.size(); ++c)
+        {
+            if (AvailableColors[c])
+            {
+                chosenColor = c;
+                break;
+            }
+        }
+
+        NodeColors[currentNodeId] = chosenColor;
+    }
+
+    std::vector<std::pair<int, FColor>> Highlights;
+    for (auto const& [nodeId, colorIndex] : NodeColors)
+    {
+        if (colorIndex >= 0 && colorIndex < Palette.size()) 
+        {
+            Highlights.push_back({nodeId, Palette[colorIndex]});
+        }
+    }
+
+    Renderer.SetHighlightedNodes(Highlights);
+    
+    GameAI::GraphRenderOptions Options;
+    Options.bDrawHighlightedNodes = true;
+    Options.bDrawConnections = true;
+    Renderer.SetRenderOptions(Options);
 }
 
 

@@ -44,4 +44,5 @@ private:
 	int lastConnectionCount = -1;
 	
 	void UpdateAgentPath( std::vector<GameAI::Node*> const & Trail);
+	void UpdateGraphColoring();
 };
