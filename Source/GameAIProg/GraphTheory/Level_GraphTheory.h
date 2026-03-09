@@ -41,5 +41,7 @@ private:
 	UPROPERTY()
 	UGraphEditorComponent* PlayerGraphEditor{}; // ref
 	
+	int lastConnectionCount = -1;
+	
 	void UpdateAgentPath( std::vector<GameAI::Node*> const & Trail);
 };

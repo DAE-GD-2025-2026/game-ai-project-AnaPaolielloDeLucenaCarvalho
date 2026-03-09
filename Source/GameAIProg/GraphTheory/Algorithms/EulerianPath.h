@@ -45,8 +45,9 @@ namespace GameAI
 		// Count nodes with odd degree
 		for (auto* node : Nodes)
 		{
-			if (m_pGraph->FindConnectionsFrom(node->GetId()).size() % 2 != 0)
-			{
+			auto connections = m_pGraph->FindConnectionsFrom(node->GetId());
+			if (connections.size() % 2 != 0)
+				{
 				oddCount++;
 			}
 		}
@@ -76,6 +77,7 @@ namespace GameAI
 	
 		// Check if there can be an Euler path
 		eulerianity = IsEulerian();
+		
 		// If this graph is not eulerian, return the empty path
 		if (eulerianity == Eulerianity::notEulerian || Nodes.size() == 0)
 		{
@@ -83,7 +85,6 @@ namespace GameAI
 		}
 
 		// If Semi-Eulerian, start at an odd node
-		// TODO - check whcih one is odd and pick one to start, we need 2 odd nodes
 		int currentNodeId = Nodes[0]->GetId();
 		if (eulerianity == Eulerianity::semiEulerian)
 		{
@@ -160,39 +161,19 @@ namespace GameAI
 	inline bool EulerianPath::IsConnected() const
 	{
 		std::vector<Node*> Nodes = m_pGraph->GetActiveNodes();
-		if (Nodes.size() == 0)
+		if (Nodes.empty())
 		{
-			return false;
-		}		
+			return true;
+		}
 
 		std::vector<bool> visited(Nodes.size(), false);
-		int startIndex = -1;
+		int startIndex = 0;
 
-		// Choose a starting node
-		for (int i = 0; i < Nodes.size(); ++i)
-		{
-			if (m_pGraph->FindConnectionsFrom(Nodes[i]->GetId()).size() > 0)
-			{
-				startIndex = i;
-				break;
-			}
-		}
-	
-		if (startIndex == -1)
-		{
-			return Nodes.size() <= 1;
-		}
-
-		// Start a depth-first-search traversal from the node that has at least one connection
 		VisitAllNodesDFS(Nodes, visited, startIndex);
-
-		// If a node was never visited, this graph is not connected
-		for (int i = 0; i < Nodes.size(); ++i)
+		
+		for (bool v : visited)
 		{
-			if (!visited[i] && m_pGraph->FindConnectionsFrom(Nodes[i]->GetId()).size() > 0)
-			{
-				return false;
-			}
+			if (!v) return false;
 		}
 		return true;
 	}

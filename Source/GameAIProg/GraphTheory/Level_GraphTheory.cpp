@@ -124,7 +124,6 @@ void ALevel_GraphTheory::Tick(float DeltaTime)
 	Renderer.RenderGraph(Graph);
 	
 	// Check if the graph has updated (tracking connections)
-	static int lastConnectionCount = -1;
 	int currentConnCount = Graph.GetConnections().size();
 
 	if (currentConnCount != lastConnectionCount)
