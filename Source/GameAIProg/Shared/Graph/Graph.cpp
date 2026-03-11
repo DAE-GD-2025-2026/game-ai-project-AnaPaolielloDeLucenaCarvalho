@@ -83,7 +83,9 @@ namespace GameAI
 
     Connection Connection::GetInverseCopy() const
     {
-        return Connection{ToId, FromId};
+		Connection Conn{ ToId, FromId };
+		Conn.SetWeight(Weight);
+        return Conn;
     }
 
     bool Connection::operator==(const Connection& Other) const
