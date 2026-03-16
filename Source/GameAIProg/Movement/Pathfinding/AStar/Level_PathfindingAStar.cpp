@@ -127,14 +127,14 @@ void ALevel_PathfindingAStar::CalculatePath()
 		&& PathStartNodeId != PathEndNodeId)
 	{
 		//Select (uncomment) BFS Pathfinding or A* Pathfinding
-		BFS pathfinder = BFS(TerrainGraph);
-		// AStar pathfinder = AStar(TerrainGraph, HeuristicFunction);
+		//BFS pathfinder = BFS(TerrainGraph);
+		AStar pathfinder = AStar(TerrainGraph, HeuristicFunction);
 		TerrainNode* const startNode = TerrainGraph->GetNodeAs<TerrainNode>(PathStartNodeId);
 		TerrainNode* const endNode = TerrainGraph->GetNodeAs<TerrainNode>(PathEndNodeId);
 
 		FoundPath = pathfinder.FindPath(startNode, endNode);
 		// std::cout << "New path calculated using " << typeid(pathfinder).name() << std::endl;
-		// UE_LOG(LogTemp, Log, TEXT("New path calculated using %hs"), typeid(pathfinder).name()); -> this gave me an error
+		// UE_LOG(LogTemp, Log, TEXT("New path calculated using %hs"), typeid(pathfinder).name()); //-> this gave me an error
 		UE_LOG(LogTemp, Log, TEXT("New path calculated using BFS"));
 		UpdateAgentPath(FoundPath);
 	}
