@@ -120,29 +120,25 @@ void ALevel_PathfindingAStar::Tick(float DeltaTime)
 
 void ALevel_PathfindingAStar::CalculatePath()
 {
-	// Find a path
-	//Check if valid start and end node exist
-	if (PathStartNodeId != Graphs::InvalidNodeId
-		&& PathEndNodeId != Graphs::InvalidNodeId
-		&& PathStartNodeId != PathEndNodeId)
+	if (PathStartNodeId != Graphs::InvalidNodeId && PathEndNodeId != Graphs::InvalidNodeId)
 	{
-		//Select (uncomment) BFS Pathfinding or A* Pathfinding
-		//BFS pathfinder = BFS(TerrainGraph);
-		AStar pathfinder = AStar(TerrainGraph, HeuristicFunction);
 		TerrainNode* const startNode = TerrainGraph->GetNodeAs<TerrainNode>(PathStartNodeId);
 		TerrainNode* const endNode = TerrainGraph->GetNodeAs<TerrainNode>(PathEndNodeId);
 
-		FoundPath = pathfinder.FindPath(startNode, endNode);
-		// std::cout << "New path calculated using " << typeid(pathfinder).name() << std::endl;
-		// UE_LOG(LogTemp, Log, TEXT("New path calculated using %hs"), typeid(pathfinder).name()); //-> this gave me an error
-		UE_LOG(LogTemp, Log, TEXT("New path calculated using BFS"));
+		if (SelectedAlgorithm == 0) // A*
+		{
+			AStar pathfinder = AStar(TerrainGraph, HeuristicFunction);
+			FoundPath = pathfinder.FindPath(startNode, endNode);
+			UE_LOG(LogTemp, Log, TEXT("Path calculated using A*"));
+		}
+		else // BFS
+		{
+			BFS pathfinder = BFS(TerrainGraph);
+			FoundPath = pathfinder.FindPath(startNode, endNode);
+			UE_LOG(LogTemp, Log, TEXT("Path calculated using BFS"));
+		}
+
 		UpdateAgentPath(FoundPath);
-	}
-	else
-	{
-		UE_LOG(LogTemp, Log, TEXT("No valid start & end node... Start: %d, End: %d"), PathStartNodeId, PathEndNodeId);
-		// std::cout << "No valid start and end node..." << std::endl;
-		FoundPath.clear();
 	}
 	
 	// Update the highlighted nodes in the renderer
@@ -205,34 +201,46 @@ void ALevel_PathfindingAStar::UpdateImGui()
 
 		/*Spacing*/ImGui::Spacing(); ImGui::Separator(); ImGui::Spacing(); ImGui::Spacing();
 
-		ImGui::Text("A* Pathfinding");
+		ImGui::Text("Pathfinding Settings");
 		ImGui::Spacing();
+       
+		// 1. Algorithm Selection Toggle
+		if (ImGui::Combo("Algorithm", &SelectedAlgorithm, "A*\0BFS\0"))
+		{
+			CalculatePath();
+		}
 		
-		// conditional debug draws
-		//ImGui::Checkbox("Grid", &bDrawGrid);
+		// 2. conditional debug draws
 		ImGui::Checkbox("NodeNumbers", &bDrawNodeNumbers);
 		ImGui::Checkbox("Connections", &bDrawConnections);
 		ImGui::Checkbox("Connections Costs", &bDrawConnectionsCosts);
-		if (ImGui::Combo("", &SelectedHeuristic, "Manhattan\0Euclidean\0SqEuclidean\0Octile\0Chebyshev", 4))
+		
+		// 3. Only show heuristic selection if A* (index 0) is selected
+		if (SelectedAlgorithm == 0) 
 		{
-			switch (SelectedHeuristic)
+			ImGui::Text("Heuristic:");
+			if (ImGui::Combo("##HeuristicCombo", &SelectedHeuristic, "Manhattan\0Euclidean\0SqEuclidean\0Octile\0Chebyshev", 4))
 			{
-			case 0:
-				HeuristicFunction = HeuristicFunctions::Manhattan;
-				break;
-			case 1:
-				HeuristicFunction = HeuristicFunctions::Euclidean;
-				break;
-			case 2:
-				HeuristicFunction = HeuristicFunctions::SqEuclidean;
-				break;
-			case 3:
-				HeuristicFunction = HeuristicFunctions::Octile;
-				break;
-			default:
-			case 4:
-				HeuristicFunction = HeuristicFunctions::Chebyshev;
-				break;
+				switch (SelectedHeuristic)
+				{
+				case 0:
+					HeuristicFunction = HeuristicFunctions::Manhattan;
+					break;
+				case 1:
+					HeuristicFunction = HeuristicFunctions::Euclidean;
+					break;
+				case 2:
+					HeuristicFunction = HeuristicFunctions::SqEuclidean;
+					break;
+				case 3:
+					HeuristicFunction = HeuristicFunctions::Octile;
+					break;
+				default:
+				case 4:
+					HeuristicFunction = HeuristicFunctions::Chebyshev;
+					break;
+				}
+				CalculatePath(); // Recalculate when heuristic changes
 			}
 		}
 		ImGui::Spacing();

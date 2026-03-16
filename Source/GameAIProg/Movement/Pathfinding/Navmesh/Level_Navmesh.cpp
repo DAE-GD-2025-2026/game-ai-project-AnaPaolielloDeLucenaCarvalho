@@ -66,17 +66,19 @@ void ALevel_Navmesh::BeginPlay()
 void ALevel_Navmesh::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	
-	if (bDrawNavPoly)
+    
+	FVector HeightOffset(0.0f, 0.0f, 15.0f); 
+
+	if (bDrawNavPoly && NavigationGraph)
 	{
 		NavigationGraph->GetNavPolygon()->DrawDebug(GetWorld(), FColor::Yellow);
 	}
-	
-	if (bDrawNavPolyVertices)
+    
+	if (bDrawNavPolyVertices && NavigationGraph)
 	{
 		for (const FVector& Vertex : NavigationGraph->GetNavPolygon()->GetVertices())
 		{
-			DrawDebugPoint(GetWorld(), Vertex, 10.0f, FColor::Cyan);
+			DrawDebugPoint(GetWorld(), Vertex + HeightOffset, 10.0f, FColor::Cyan);
 		}
 	}
 	
@@ -90,19 +92,25 @@ void ALevel_Navmesh::Tick(float DeltaTime)
 		for (int PathIdx = 1; PathIdx < DebugDrawPath.size(); ++PathIdx)
 		{
 			DrawDebugLine(
-				GetWorld(), 
-				FVector{DebugDrawPath[PathIdx - 1], 5.0f}, 
-				FVector{DebugDrawPath[PathIdx], 5.0f}, 
-				FColor::Magenta, false, -1, 1, 10);
+			   GetWorld(), 
+			   FVector{DebugDrawPath[PathIdx - 1], 0} + HeightOffset, 
+			   FVector{DebugDrawPath[PathIdx], 0} + HeightOffset, 
+			   FColor::Magenta, false, 0, 1, 10);
 		}
 	}
-	
-	// Todo: Draw the portals travelled through with SSFA
-	// if (bDrawPortals)
-	// {
-	// 	
-	// }
-	
+    
+	if (bDrawPortals)
+	{
+		for (const GameAI::NavLine& Portal : DebugDrawPortals)
+		{
+			DrawDebugLine(GetWorld(), FVector{ Portal.P1, 0 } + HeightOffset, FVector{ Portal.P2, 0 } + HeightOffset, 
+			   FColor::Blue, false, 0, 1, 5);
+             
+			DrawDebugPoint(GetWorld(), FVector{ Portal.P1, 0 } + HeightOffset, 8.0f, FColor::Red);   // Right
+			DrawDebugPoint(GetWorld(), FVector{ Portal.P2, 0 } + HeightOffset, 8.0f, FColor::Green); // Left
+		}
+	}
+    
 	UpdateImGui();
 }
 
@@ -214,15 +222,25 @@ TArray<TArray<FVector>> ALevel_Navmesh::ExtractNavMeshTris() const
 
 void ALevel_Navmesh::SetTarget()
 {
-	GameAI::NavMeshPathfinding Pathfinder{};
-	std::vector<FVector2D> Path =  Pathfinder.FindPath(Agent->GetPosition(), 
-	FVector2D{LatestMouseWorldPos}, NavigationGraph.get());
+	// 1. Clear previous debug data
+	DebugDrawPath.clear();
+	DebugDrawPortals.clear();
 
-	DebugDrawPath = Path;
-	
-	PathFollow.SetPath(Path);
-	if (Path.size() > 0)
+	// 2. Call the overload that takes debugNodePositions and debugPortals
+	GameAI::NavMeshPathfinding Pathfinder{};
+    
+	std::vector<FVector2D> finalPath = Pathfinder.FindPath(
+		Agent->GetPosition(), 
+		FVector2D{LatestMouseWorldPos}, 
+		NavigationGraph.get(), 
+		DebugDrawPath,
+		DebugDrawPortals
+	);
+    
+	// 3. Update the Agent
+	PathFollow.SetPath(finalPath);
+	if (finalPath.size() > 0)
 	{
-		Agent->SetPosition(Path[0]);
+		Agent->SetPosition(finalPath[0]);
 	}
 }

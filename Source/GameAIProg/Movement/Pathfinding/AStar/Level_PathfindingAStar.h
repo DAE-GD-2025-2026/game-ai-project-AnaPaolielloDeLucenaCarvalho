@@ -75,4 +75,5 @@ private:
 	bool bDrawConnections = false;
 	bool bDrawConnectionsCosts = false;
 	bool VisualizeMouseTarget = true;
+	int SelectedAlgorithm = 0; // 0 = A*, 1 = BFS
 };

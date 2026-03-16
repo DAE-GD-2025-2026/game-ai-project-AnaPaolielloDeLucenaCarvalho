@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "GraphTheory/Algorithms/NavGraphPathfinding.h"
+
 #include "CoreMinimal.h"
 #include "GraphTheory/Level_GraphTheory.h"
 #include "Shared/Graph/NavGraph/NavGraph.h"
@@ -36,6 +38,7 @@ private:
 	ASteeringAgent* Agent{nullptr}; // ref
 	PathFollow PathFollow{};
 	std::vector<FVector2D> DebugDrawPath{};
+	std::vector<GameAI::NavLine> DebugDrawPortals;
 	
 	bool bDrawNavPolyVertices{false};
 	bool bDrawNavPoly{true};

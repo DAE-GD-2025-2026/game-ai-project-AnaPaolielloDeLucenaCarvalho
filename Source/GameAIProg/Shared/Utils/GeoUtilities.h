@@ -94,4 +94,11 @@ namespace GameAI::Utilities::Geo
 		}
 		return true;
 	}
+	
+	// TODO - Ask if this is  to teachers?
+	// W6 - Navigation meshes says to use
+	inline float Cross(const FVector2D& v1, const FVector2D& v2)
+	{
+		return v1.X * v2.Y - v1.Y * v2.X;
+	}
 }

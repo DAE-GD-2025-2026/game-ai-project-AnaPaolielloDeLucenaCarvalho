@@ -48,12 +48,74 @@ int GameAI::NavGraph::GetNodeIdFromEdgeIndex(int EdgeIdx) const
 
 void GameAI::NavGraph::CreateNavigationGraph()
 {
-	//1. Go over all the edges of the navigation mesh and create nodes
-			// Create node here
+	if (!pNavPoly)
+	{
+		return;
+	}
+	
+	// A. Loop over all the lines (edges) of the Polygon
+	const auto& allEdges = pNavPoly->GetEdges();
+	const auto& allTriangles = pNavPoly->GetTriangles();
 
-	//2. Create connections now that every node is created	
-		//2 valid nodes -> 1 connection
-		//3 valid nodes -> 3 connections
-		
-	//3. Set the connections cost to the actual distance
+	for (int i = 0; i < (int)allEdges.size(); ++i)
+	{
+		int sharedCount = 0;
+		for (const auto& tri : allTriangles)
+		{
+			if (tri.HasEdge(allEdges[i]))
+			{
+				sharedCount++;
+			}
+		}
+    
+		if (sharedCount > 1)
+		{
+			FVector p1 = allEdges[i].GetP1(*pNavPoly);
+			FVector p2 = allEdges[i].GetP2(*pNavPoly);
+			FVector2D middle = { (p1.X + p2.X) * 0.5f, (p1.Y + p2.Y) * 0.5f };
+
+			AddNode(std::make_unique<NavGraphNode>(middle, i));
+		}
+	}
+
+    // B. For each Triangle in the Navigation Mesh, find the Nodes and connect them
+	const auto& triangles = pNavPoly->GetTriangles();
+	for (const auto& tri : triangles)
+	{
+		std::vector<int> nodeIds;
+		auto edges = tri.GetEdges();
+
+		for (const auto& edge : edges)
+		{
+			int edgeIdx = pNavPoly->FindEdgeIndex(edge).value_or(-1);
+			int nodeId = GetNodeIdFromEdgeIndex(edgeIdx);
+
+			if (nodeId != -1) 
+			{
+				nodeIds.push_back(nodeId);
+			}
+		}
+
+		// 2 nodes - 1 connection
+		if (nodeIds.size() == 2)
+		{
+			AddConnection(nodeIds[0], nodeIds[1]);
+			AddConnection(nodeIds[1], nodeIds[0]);
+		}
+		// 3 nodes - 3 connections
+		else if (nodeIds.size() == 3)
+		{
+			AddConnection(nodeIds[0], nodeIds[1]);
+			AddConnection(nodeIds[1], nodeIds[0]);
+    
+			AddConnection(nodeIds[1], nodeIds[2]);
+			AddConnection(nodeIds[2], nodeIds[1]);
+    
+			AddConnection(nodeIds[2], nodeIds[0]);
+			AddConnection(nodeIds[0], nodeIds[2]);
+		}
+	}
+
+    // C. Set the connection costs to the distance
+	SetConnectionCostsToDistances();
 }
