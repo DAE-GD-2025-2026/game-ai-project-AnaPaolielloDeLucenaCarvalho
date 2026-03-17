@@ -41,7 +41,7 @@ public:
 			FVector2D nextPos = Path[i+1]->GetPosition();
 			FVector2D forward = nextPos - currentPos;
 
-			if (GameAI::Utilities::Geo::Cross(forward, v1 - currentPos) < 0.f)
+			if (GameAI::Utilities::Geo::Cross(forward, v1 - currentPos) > 0.f)
 			{
 				Portals.push_back({v1, v2});
 			}
