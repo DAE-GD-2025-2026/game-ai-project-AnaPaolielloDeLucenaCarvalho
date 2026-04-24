@@ -27,11 +27,13 @@ namespace GameAI::FSM
 			FVector TargetLocation = Route[CurrentTargetIndex];
 			FVector AgentLocation = Agent->GetActorLocation();
 
-			// move the agent to target
+			// move agent to target
 			FVector Direction = (TargetLocation - AgentLocation).GetSafeNormal();
-			Agent->SetActorLocation(AgentLocation + (Direction * 300.0f * DeltaTime)); 
+			FVector NewLocation = AgentLocation + (Direction * 300.0f * DeltaTime);
 
-			if (FVector::Distance(AgentLocation, TargetLocation) < 100.0f)
+			Agent->SetActorLocation(NewLocation, true);
+
+			if (FVector::Distance(AgentLocation, TargetLocation) < 200.0f)
 			{
 				CurrentTargetIndex = (CurrentTargetIndex + 1) % Route.Num();
 			}
@@ -53,7 +55,26 @@ namespace GameAI::FSM
 		}
 		
 		void OnEnter() override { }
-		void Update(float DeltaTime) override { }
+		void Update(float DeltaTime) override 
+		{ 
+			ASteeringAgent* Thief = Board->GetData<ASteeringAgent*>("TargetAgent");
+			if (!Agent || !Thief) return;
+
+			// move to thief
+			FVector TargetLoc = Thief->GetActorLocation();
+			FVector ToTarget = TargetLoc - Agent->GetActorLocation();
+
+			if (ToTarget.Length() > 100.0f) 
+			{
+				FVector Direction = ToTarget.GetSafeNormal();
+				FVector NewLocation = Agent->GetActorLocation() + (Direction * 400.0f * DeltaTime);
+            
+				Agent->SetActorLocation(NewLocation, true); 
+			}
+
+			// save thief location - so that SearchState can use it
+			Board->SetData("LastKnownPos", TargetLoc);
+		}
 		void OnExit() override { }
 		
 	private:
@@ -65,14 +86,33 @@ namespace GameAI::FSM
 	{
 	public:
 		SearchState(ASteeringAgent* InAgent, Blackboard* InBoard) 
-			: Agent(InAgent), Board(InBoard)
+		   : Agent(InAgent), Board(InBoard)
 		{
 		}
-		
-		void OnEnter() override { }
-		void Update(float DeltaTime) override { }
+       
+		void OnEnter() override 
+		{ 
+			if (Agent) 
+			{
+				Board->SetData<double>("SearchStartTime", Agent->GetWorld()->GetTimeSeconds());
+			}
+		}
+		void Update(float DeltaTime) override 
+		{ 
+			if (!Agent) return;
+
+			FVector LastKnown = Board->GetData<FVector>("LastKnownPos");
+
+			if (FVector::Distance(Agent->GetActorLocation(), LastKnown) > 50.0f)
+			{
+				FVector Direction = (LastKnown - Agent->GetActorLocation()).GetSafeNormal();
+				FVector NewLocation = Agent->GetActorLocation() + (Direction * 300.0f * DeltaTime);
+            
+				Agent->SetActorLocation(NewLocation, true);
+			}
+		}
 		void OnExit() override { }
-		
+       
 	private:
 		ASteeringAgent* Agent;
 		Blackboard* Board;

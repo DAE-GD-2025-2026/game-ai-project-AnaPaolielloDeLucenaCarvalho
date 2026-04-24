@@ -58,6 +58,11 @@ void UFSMComponent::StartLogic()
 	Super::StartLogic();
 
 	bIsRunning = true;
+	
+	if (FSMInstance)
+	{
+		FSMInstance->Start(); 
+	}
 }
 
 void UFSMComponent::StopLogic(const FString& Reason)
