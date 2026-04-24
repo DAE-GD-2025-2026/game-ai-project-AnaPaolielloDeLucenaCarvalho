@@ -1,5 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include <functional>
@@ -7,13 +5,14 @@
 
 #include "CoreMinimal.h"
 #include "BrainComponent.h"
+#include "FiniteStateMachine.h"
 #include "FSMComponent.generated.h"
 
 namespace GameAI::FSM
 {
 	class State;
 	class Transition;
-	class FSM; // contains FSM logic
+	// class FSM; // contains FSM logic
 }
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
@@ -24,6 +23,7 @@ class GAMEAIPROG_API UFSMComponent : public UBrainComponent
 public:
 	// Sets default values for this component's properties
 	UFSMComponent();
+	~UFSMComponent();
 
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType,
@@ -42,6 +42,6 @@ protected:
 	virtual void BeginPlay() override;
 
 private:
-	//std::unique_ptr<GameAI::FSM::FSM> FSMInstance;
+	std::unique_ptr<GameAI::FSM::FSM> FSMInstance;
 	bool bIsRunning{false};
 };

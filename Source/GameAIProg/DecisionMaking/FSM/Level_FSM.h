@@ -24,5 +24,10 @@ protected:
 
 private:
 	UPROPERTY()
-	ASteeringAgent* Agent{nullptr}; // ref
+	ASteeringAgent* Agent{nullptr}; // guard
+
+	UPROPERTY()
+	ASteeringAgent* ThiefAgent{nullptr}; // thief
+
+	TArray<FVector> PatrolRoute;
 };

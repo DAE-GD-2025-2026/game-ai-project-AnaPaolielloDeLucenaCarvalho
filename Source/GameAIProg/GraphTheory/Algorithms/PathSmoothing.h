@@ -41,7 +41,7 @@ public:
 			FVector2D nextPos = Path[i+1]->GetPosition();
 			FVector2D forward = nextPos - currentPos;
 
-			if (GameAI::Utilities::Geo::Cross(forward, v1 - currentPos) > 0.f)
+			if (FVector2D::CrossProduct(forward, v1 - currentPos) > 0.f)
 			{
 				Portals.push_back({v1, v2});
 			}
@@ -80,9 +80,9 @@ public:
 
             // RIGHT CHECK
             FVector2D newRightLeg = portal.P1 - apexPos;            
-            if (GameAI::Utilities::Geo::Cross(rightLeg, newRightLeg) <= 0.f)
+            if (FVector2D::CrossProduct(rightLeg, newRightLeg) <= 0.f)
             {
-                if (GameAI::Utilities::Geo::Cross(leftLeg, newRightLeg) < 0.f)
+                if (FVector2D::CrossProduct(leftLeg, newRightLeg) < 0.f)
                 {
                     apexPos = Portals[leftLegIndex].P2;
                     Path.push_back(apexPos);
@@ -111,9 +111,9 @@ public:
 
             // LEFT CHECK
             FVector2D newLeftLeg = portal.P2 - apexPos;            
-            if (GameAI::Utilities::Geo::Cross(leftLeg, newLeftLeg) >= 0.f)
+            if (FVector2D::CrossProduct(leftLeg, newLeftLeg) >= 0.f)
             {
-                if (GameAI::Utilities::Geo::Cross(rightLeg, newLeftLeg) > 0.f)
+                if (FVector2D::CrossProduct(rightLeg, newLeftLeg) > 0.f)
                 {
                     apexPos = Portals[rightLegIndex].P1;
                     Path.push_back(apexPos);
