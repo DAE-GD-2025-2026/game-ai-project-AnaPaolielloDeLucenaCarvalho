@@ -3,6 +3,9 @@
 #include <string>
 #include <any>
 
+// This class was a mistake, i didnt realize that we had an asset and thought that we had to make one ourselves. 
+// I will keep it here to show the code but it is not used anywhere in the project.
+
 namespace GameAI::FSM
 {
 	class Blackboard

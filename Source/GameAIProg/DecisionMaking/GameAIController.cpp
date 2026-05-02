@@ -1,54 +1,64 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-
 #include "GameAIController.h"
 
 #include "BehaviorTree/BlackboardComponent.h"
-#include "FSM/FSMComponent.h"
-
+#include "Perception/AIPerceptionComponent.h"
+#include "Perception/AISenseConfig_Sight.h"
+#include "Perception/AISense_Sight.h"
 
 // Sets default values
 AGameAIController::AGameAIController()
 {
-	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-	BrainComponent = CreateDefaultSubobject<UFSMComponent>(TEXT("FSMComponent"));;
+
+	AIPerceptionComp = CreateDefaultSubobject<UAIPerceptionComponent>(TEXT("AIPerceptionComp"));
+	SightConfig = CreateDefaultSubobject<UAISenseConfig_Sight>(TEXT("SightConfig"));
+
+	SightConfig->SightRadius = 600.0f;
+	SightConfig->LoseSightRadius = 650.0f;
+	SightConfig->PeripheralVisionAngleDegrees = 90.0f;
+	SightConfig->DetectionByAffiliation.bDetectEnemies = true;
+	SightConfig->DetectionByAffiliation.bDetectNeutrals = true;
+	SightConfig->DetectionByAffiliation.bDetectFriendlies = true;
+
+	AIPerceptionComp->ConfigureSense(*SightConfig);
+	AIPerceptionComp->SetDominantSense(UAISense_Sight::StaticClass());
 }
 
 // Called when the game starts or when spawned
 void AGameAIController::BeginPlay()
 {
 	Super::BeginPlay();
-	
-	// Create Blackboard if need be
-	InitFiniteStateMachine();
-}
 
-// Called every frame
-void AGameAIController::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-}
+	AIPerceptionComp->OnTargetPerceptionUpdated.AddDynamic(this, &AGameAIController::OnTargetPerceptionUpdated);
 
-void AGameAIController::InitFiniteStateMachine()
-{
-	UFSMComponent* FSMComp = FindComponentByClass<UFSMComponent>();
-	if (ensure(FSMComp) && FSMBlackboardAsset)
+	// start the Behavior Tree!
+	if (BehaviorTreeAsset)
 	{
-		UBlackboardComponent* BlackboardComp = Blackboard;
-		UseBlackboard(FSMBlackboardAsset, BlackboardComp);
-		Blackboard = BlackboardComp;
+		PatrolRoute.Empty();
+		PatrolRoute.Add(FVector{-200, -200, 110});
+		PatrolRoute.Add(FVector{200, -200, 110});
+		PatrolRoute.Add(FVector{200, 200, 110});
+		PatrolRoute.Add(FVector{-200, 200, 110});
+		
+		RunBehaviorTree(BehaviorTreeAsset);
 	}
 }
 
-void AGameAIController::RunFiniteStateMachine()
+void AGameAIController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
 {
-	UFSMComponent* FSMComp = FindComponentByClass<UFSMComponent>();
-	if (ensure(FSMComp))
+	if (UBlackboardComponent* BBComp = GetBlackboardComponent())
 	{
-		FSMComp->StartLogic();
+		if (Stimulus.WasSuccessfullySensed())
+		{
+			BBComp->SetValueAsObject(FName("TargetActor"), Actor);
+			BBComp->ClearValue(FName("LastKnownLocation"));
+		}
+		else
+		{
+			BBComp->ClearValue(FName("TargetActor"));
+			BBComp->SetValueAsVector(FName("LastKnownLocation"), Stimulus.ReceiverLocation);
+		}
 	}
 }
-
-
-
